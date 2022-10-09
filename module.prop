@@ -1,0 +1,6 @@
+id=MoveCertificate
+name=movecert
+version=v1.0
+versionCode=1
+author=iyue
+description=support android7+ Move certificate.
