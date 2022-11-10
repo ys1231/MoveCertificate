@@ -23,9 +23,9 @@ init_install(){
   # ui_print "        Move Certificates      "
   # ui_print "        by iyue                "
   # ui_print "*******************************"
-  ui_print "delete Placeholder file"
-  rm $MODPATH/system/etc/security/cacerts/placeholder
+  ui_print "        by iyue                "
 }
 
 # Output installation information
 init_install
+

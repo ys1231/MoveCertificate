@@ -7,3 +7,20 @@ http://www.zhuoyue360.com/crack/60.html
 https://topjohnwu.github.io/Magisk/guides.html#boot-scripts
 https://github.com/Magisk-Modules-Repo/movecert
 
+# 使用方法
+1. 导出抓包软件证书 转换 证书为 pem 格式
+2. `adb shell "mkdir -p  /data/local/tmp/crt"`
+3. 获取证书hash 
+
+```shell
+#openssl版本在1.0以上的版本的执行下面这一句---------------------
+openssl x509 -inform PEM -subject_hash_old -in cacert.pem
+#openssl版本在1.0以下的版本的执行下面这一句
+openssl x509 -inform PEM -subject_hash -in cacert.pem
+```
+
+![image-20221109212126575](README.assets/image-20221109212126575.png)
+
+4. 手动修改证书(pem格式证书)文件名为`02e06844.0` 
+5. `adb push 02e06844.0  /data/local/tmp/crt/`
+6. 证书推到手机后,重启即可生效.
