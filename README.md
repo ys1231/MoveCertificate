@@ -24,3 +24,12 @@ openssl x509 -inform PEM -subject_hash -in cacert.pem
 4. 手动修改证书(pem格式证书)文件名为`02e06844.0` 
 5. `adb push 02e06844.0  /data/local/tmp/crt/`
 6. 证书推到手机后,重启即可生效.
+
+# 补充 证书转换 der to pem
+
+```shell
+# 以burp为例
+openssl x509 -in burp.der -inform der -outform pem -out burp.pem
+# 完成后重复 3.  - 继续
+```
+
