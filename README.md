@@ -22,8 +22,9 @@ openssl x509 -inform PEM -subject_hash -in cacert.pem
 ![image-20221109212126575](README.assets/image-20221109212126575.png)
 
 4. 手动修改证书(pem格式证书)文件名为`02e06844.0` 
-5. `adb push 02e06844.0  /data/local/tmp/crt/`
-6. 证书推到手机后,重启即可生效.
+5. `mkdir /data/local/tmp/crt`  这个crt目录需要自己创建 
+6. `adb push 02e06844.0  /data/local/tmp/crt/`
+7. 证书推到手机后,重启即可生效.
 
 # 补充 证书转换 der to pem
 
