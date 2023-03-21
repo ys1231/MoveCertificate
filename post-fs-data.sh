@@ -18,9 +18,8 @@
 #
 
 MODDIR=${0%/*}
-ui_print "delete Placeholder file"
+mv -f /data/misc/user/0/cacerts-added/* $MODDIR/system/etc/security/cacerts/
 mv -f /data/local/tmp/crt/* $MODDIR/system/etc/security/cacerts/
-rm $MODPATH/system/etc/security/cacerts/placeholder
 chown -R 0:0 $MODDIR/system/etc/security/cacerts
 
 [ "$(getenforce)" = "Enforcing" ] || exit 0

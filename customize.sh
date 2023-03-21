@@ -19,11 +19,13 @@
 
 
 init_install(){
-  # ui_print "*******************************"
-  # ui_print "        Move Certificates      "
-  # ui_print "        by iyue                "
-  # ui_print "*******************************"
-  ui_print "        by iyue                "
+    ui_print "        by iyue                "
+    # ui_print "delete Placeholder file"
+    rm -f $MODPATH/system/etc/security/cacerts/placeholder
+    set_perm_recursive $MODPATH 0 0 0755 0644
+    ui_print "1. 移动用户证书到系统证书"
+    ui_print "2. 把/data/local/tmp/crt
+    目录下的证书移动到系统证书如果已存在会覆盖!"
 }
 
 # Output installation information

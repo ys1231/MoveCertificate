@@ -1,7 +1,6 @@
 id=MoveCertificate
 name=MoveCertificate
-version=v1.2
-versionCode=3
+version=v1.3
+versionCode=4
 author=iyue
-description=support android7+ Move certificate.
-updateJson=http://ys1231.cn:81/movecert/movecrturl.json
+description=support android7+ move certificate.

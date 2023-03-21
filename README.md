@@ -6,11 +6,12 @@
 http://www.zhuoyue360.com/crack/60.html
 https://topjohnwu.github.io/Magisk/guides.html#boot-scripts
 https://github.com/Magisk-Modules-Repo/movecert
-
+1. 添加原本的移动系统证书的功能 
+2. 附带下面的自己计算证书名更好的支持系统证书
 # 使用方法
 1. 导出抓包软件证书 转换 证书为 pem 格式
 2. `adb shell "mkdir -p  /data/local/tmp/crt"`
-3. 获取证书hash 
+3. 获取证书hash
 
 ```shell
 #openssl版本在1.0以上的版本的执行下面这一句---------------------
