@@ -1,6 +1,6 @@
 id=MoveCertificate
 name=MoveCertificate
-version=v1.3
+version=v1.4
 versionCode=4
 author=iyue
-description=support android7+ move certificate.
+description=Android 7+ Move Certificate
