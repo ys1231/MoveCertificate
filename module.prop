@@ -4,3 +4,4 @@ version=v1.4
 versionCode=4
 author=iyue
 description=Android 7+ Move Certificate
+updateJson=https://ys1231.cn:82/modules/MoveCertificate/update.json

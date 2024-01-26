@@ -1,0 +1,2 @@
+- Supports Android 14 move certificates.But untested.
+- 支持Android14,但是未经测试.
