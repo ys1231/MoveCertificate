@@ -1,25 +1,22 @@
-# move Certificate
-这是一个Magisk 模块 用于移动用户证书到系统证书.
-由于之前网上的已经无法安装遂打算自己写一个.
-如果手机是官方镜像,可能就需要借助magisk ,如果是自己编译的直接remount手动移一下就行了.
+# MoveCertificate
+这是一个Magisk 模块 用于移动用户证书到系统证书.支持`Android 7-14`
+如果手机是官方镜像,可能就需要借助`magisk`,如果是自己编译的直接`remount`手动移一下就行了.
 以下是参考链接:
 http://www.zhuoyue360.com/crack/60.html
 https://topjohnwu.github.io/Magisk/guides.html#boot-scripts
 https://github.com/Magisk-Modules-Repo/movecert
 https://github.com/andyacer/movecert
-1. 添加用户安装的证书拷贝到系统证书的功能
-2. ~~附带下面的自己计算证书名更好的支持系统证书~~
+https://book.hacktricks.xyz/v/cn/mobile-pentesting/android-app-pentesting/install-burp-certificate#android-14-zhi-hou 
+
 # 使用方法
 
-## 拷贝用户安装的证书到系统证书目录 
-
-1. 安装抓包的证书之后直接重启即可,需要注意的是最新版chrome 即使正确安装系统证书也会校验失败可更换其它浏览器或使用91.0.4472.144版本其他没测
+1. 导出证书后直接`push`到手机,直接安装重启即可,不需要格式转换.
 
 ## ~~手动直接安装证书到系统证书目录~~
 
 1. ~~导出抓包软件证书 转换 证书为 pem 格式~~
 2. ~~`adb shell "mkdir -p  /data/local/tmp/crt"`~~
-3. 获取证书hash
+3. ~~获取证书hash~~
 
 ```shell
 #openssl版本在1.0以上的版本的执行下面这一句---------------------
