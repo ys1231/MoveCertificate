@@ -1,2 +1,4 @@
-- Supports Android 14 move certificates.But untested.
-- 支持Android14,但是未经测试.
+- `Supports Android 14 move certificates.But untested.`
+- 支持`Android14` 但是未经测试.
+- `Optimize the timing of moving the android14 certificate and wait for the system to fully start before executing.`
+- 优化`android14` 移动证书的时机,等待系统完全启动后执行。

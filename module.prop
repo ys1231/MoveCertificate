@@ -1,7 +1,7 @@
 id=MoveCertificate
 name=MoveCertificate
-version=v1.4
-versionCode=4
+version=v1.4.1
+versionCode=5
 author=iyue
-description=Android 7+ Move Certificate
+description=Supports magiskv20.4+/kernelsu Android 7-14 move certificates
 updateJson=https://ys1231.cn:82/modules/MoveCertificate/update.json
