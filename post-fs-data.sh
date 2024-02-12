@@ -19,10 +19,13 @@ fi
 
 cp -u /system/etc/security/cacerts/* $MODDIR/certificates
 cp -u /data/misc/user/0/cacerts-added/* $MODDIR/certificates/
+chown -R root:root $MODDIR/certificates/
+chmod -R 644 $MODDIR/certificates
+chmod 755 $MODDIR/certificates
 mount -t tmpfs tmpfs /system/etc/security/cacerts/
 cp -f $MODDIR/certificates/* /system/etc/security/cacerts/
 chown root:root /system/etc/security/cacerts
-chown root:root /system/etc/security/cacerts/*
+chown -R root:root /system/etc/security/cacerts/
+chmod -R 644 /system/etc/security/cacerts/
 chmod 755 /system/etc/security/cacerts
-chmod 644 /system/etc/security/cacerts/*
 chcon u:object_r:system_file:s0 /system/etc/security/cacerts/*
