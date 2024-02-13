@@ -29,6 +29,9 @@ done
 # Otherwise, when we add the mount we can't read the current certs anymore.
 # mkdir -p -m 700 $MODPATH/certificates
 # chmod 700 $MODPATH/certificates
+chown -R root:root $MODDIR/certificates/
+chmod -R 644 $MODDIR/certificates
+chmod 755 $MODDIR/certificates
 
 # Copy out the existing certificates
 cp -u /system/etc/security/cacerts/* $MODDIR/certificates/
@@ -44,9 +47,9 @@ mv -f $MODDIR/certificates/* /system/etc/security/cacerts/
 
 # Update the perms & selinux context labels
 chown root:root /system/etc/security/cacerts
-chown root:root /system/etc/security/cacerts/*
+chown -R root:root /system/etc/security/cacerts
+chmod -R 644 /system/etc/security/cacerts
 chmod 755 /system/etc/security/cacerts
-chmod 644 /system/etc/security/cacerts/*
 chcon u:object_r:system_file:s0 /system/etc/security/cacerts/*
 
 # Deal with the APEX overrides, which need injecting into each namespace:
