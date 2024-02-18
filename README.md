@@ -12,6 +12,12 @@ https://book.hacktricks.xyz/v/cn/mobile-pentesting/android-app-pentesting/instal
 
 1. 导出证书后直接`push`到手机,直接安装重启即可,不需要格式转换.
 
+## 使用实测
+
+![iShot_2024-02-19_01.38.02](README.assets/iShot_2024-02-19_01.38.02.png)
+![iShot_2024-02-19_01.36.50](README.assets/iShot_2024-02-19_01.36.50.png)
+![iShot_2024-02-19_01.27.27](README.assets/iShot_2024-02-19_01.27.27.png)
+
 ## ~~手动直接安装证书到系统证书目录~~
 
 1. ~~导出抓包软件证书 转换 证书为 pem 格式~~

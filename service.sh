@@ -37,13 +37,13 @@ chmod 755 $MODDIR/certificates
 cp -u /system/etc/security/cacerts/* $MODDIR/certificates/
 
 # Move our new certificate, so we trust that too
-mv -f /data/misc/user/0/cacerts-added/* $MODDIR/certificates/
+cp -u /data/misc/user/0/cacerts-added/* $MODDIR/certificates/
 
 # Create the in-memory mount on top of the system certs folder
 mount -t tmpfs tmpfs /system/etc/security/cacerts/
 
 # Copy the existing certs back into the tmpfs, so we keep trusting them
-mv -f $MODDIR/certificates/* /system/etc/security/cacerts/
+cp -f $MODDIR/certificates/* /system/etc/security/cacerts/
 
 # Update the perms & selinux context labels
 chown root:root /system/etc/security/cacerts
