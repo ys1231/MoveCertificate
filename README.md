@@ -1,6 +1,6 @@
 # Move Certificates
-这是一个`Magisk/KernelSU`模块 用于移动用户证书到系统证书.支持`Android 7-14`
-如果手机是官方镜像,可能就需要借助`magisk`,如果是自己编译的直接`remount`手动移一下就行了.
+这是一个`Magisk/KernelSU/APatch`模块 用于移动用户证书到系统证书.支持`Android 7-14`
+如果手机是官方镜像,可能就需要借助模块,如果是自己编译的直接`remount`手动移一下就行了.
 以下是参考链接:
 http://www.zhuoyue360.com/crack/60.html
 https://topjohnwu.github.io/Magisk/guides.html#boot-scripts
@@ -36,7 +36,7 @@ openssl x509 -inform PEM -subject_hash -in cacert.pem
 4. ~~手动修改证书(pem格式证书)文件名为`02e06844.0`~~
 5. ~~`mkdir /data/local/tmp/crt`  这个crt目录需要自己创建~~ 
 6. ~~`adb push 02e06844.0  /data/local/tmp/crt/`~~
-7. ~~证书推到手机后,重启即可生效,其实是移动到magisk挂在的目录.~~
+7. ~~证书推到手机后,重启即可生效,其实是移动到magisk挂载的目录.~~
 
 # 补充 证书转换 ~~der to pem~~ der 直接push到手机 安装CA即可
 

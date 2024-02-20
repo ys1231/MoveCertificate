@@ -1,6 +1,4 @@
-- 支持Android7-14，兼容magiskv20.4+/kernelsu
-- Support Android7-14, compatible with magiskv20.4+/kernelsu
-- 针对Android14以下修复权限错误
-- Fix permission errors for Android 14 and below
-- 修复Android14逻辑错误,导致重启证书消失
-- Fix Android 14 logic error, causing the restart certificate to disappear
+- 修复Android14 HyperOS无法识别证书的问题
+- Fix the issue of Android 14 HyperOS not recognizing certificates
+- 优化移动证书的时机为`zygote`启动之前
+- The timing for optimizing mobile certificates is before the launch of 'zygote'
