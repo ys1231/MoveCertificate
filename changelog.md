@@ -1,4 +1,4 @@
-- 修复Android14 HyperOS无法识别证书的问题
-- Fix the issue of Android 14 HyperOS not recognizing certificates
-- 优化移动证书的时机为`zygote`启动之前
-- The timing for optimizing mobile certificates is before the launch of 'zygote'
+- 修复conscrypt有另外的版本时，移动证书无效。
+- Fix invalid move certificates when conscrypt has another version.
+- 新增执行日志，方便定位问题。
+- Added execution logs for easy problem localization.
