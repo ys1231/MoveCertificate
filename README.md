@@ -12,17 +12,15 @@ https://book.hacktricks.xyz/v/cn/mobile-pentesting/android-app-pentesting/instal
 
 1. 导出证书后直接`push`到手机,直接安装重启即可,不需要格式转换.
 
-## 使用实测
+## 手动直接安装证书到系统证书目录
 
-![iShot_2024-02-19_01.38.02](README.assets/iShot_2024-02-19_01.38.02.png)
-![iShot_2024-02-19_01.36.50](README.assets/iShot_2024-02-19_01.36.50.png)
-![iShot_2024-02-19_01.27.27](README.assets/iShot_2024-02-19_01.27.27.png)
+**此方法会覆盖已有的证书，专为多台电脑和内置证书准备**
 
-## ~~手动直接安装证书到系统证书目录~~
+0. 如果证书已经移动过或者内置到源码中，会发现直接通过系统安装，实际证书并没有被安装进去，需要保留这种场景
 
-1. ~~导出抓包软件证书 转换 证书为 pem 格式~~
-2. ~~`adb shell "mkdir -p  /data/local/tmp/crt"`~~
-3. ~~获取证书hash~~
+1. 导出抓包软件证书 转换 证书为 pem 格式
+2. `adb shell "mkdir -p  /data/local/tmp/cert"`
+3. 获取证书hash
 
 ```shell
 #openssl版本在1.0以上的版本的执行下面这一句---------------------
@@ -33,12 +31,15 @@ openssl x509 -inform PEM -subject_hash -in cacert.pem
 
 ![image-20221109212126575](README.assets/image-20221109212126575.png)
 
-4. ~~手动修改证书(pem格式证书)文件名为`02e06844.0`~~
-5. ~~`mkdir /data/local/tmp/crt`  这个crt目录需要自己创建~~ 
-6. ~~`adb push 02e06844.0  /data/local/tmp/crt/`~~
-7. ~~证书推到手机后,重启即可生效,其实是移动到magisk挂载的目录.~~
+4. 手动修改证书(转换前)文件名为`02e06844.0`
+5. `mkdir /data/local/tmp/cert`  这个cert目录需要自己创建
+6. `adb push 02e06844.0  /data/local/tmp/cert/`
+7. 证书推到手机后,重启即可生效，突然发现得保留这种场景。
 
-# 补充 证书转换 ~~der to pem~~ der 直接push到手机 安装CA即可
+## 使用实测
+![iShot_2024-02-19_01.27.27](README.assets/iShot_2024-02-19_01.27.27.png)
+
+# 补充 证书转换 der to pem
 
 ```shell
 # 以burp为例

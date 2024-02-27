@@ -1,4 +1,2 @@
-- 修复conscrypt有另外的版本时，移动证书无效。
-- Fix invalid move certificates when conscrypt has another version.
-- 新增执行日志，方便定位问题。
-- Added execution logs for easy problem localization.
+- 恢复覆盖安装自定义证书，解决内置证书，更新后无法覆盖问题
+- Resume overriding the installation of customized certificates to solve the problem of built-in certificates, which can not be overridden after update
