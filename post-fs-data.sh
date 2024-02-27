@@ -65,7 +65,7 @@ if [ "$sdk_version_number" -ge 34 ]; then
     mount_cert "$apex_dir/cacerts/"
     mount_cert /apex/com.android.conscrypt/cacerts/
 else
-    # All Android versions perform
+    # Android 13 or lower versions perform
     print_log "Backup user custom certificates1"
     cp -f /data/local/tmp/cert/* $MODDIR/certificates/
     cp -f /data/local/tmp/cert/* /data/misc/user/0/cacerts-added/
