@@ -64,28 +64,27 @@ if [ "$sdk_version_number" -ge 34 ]; then
     print_log "find conscrypt directory: $apex_dir"
     mount_cert "$apex_dir/cacerts/"
     mount_cert /apex/com.android.conscrypt/cacerts/
+else
+    # All Android versions perform
+    print_log "Backup user custom certificates1"
+    cp -f /data/local/tmp/cert/* $MODDIR/certificates/
+    cp -f /data/local/tmp/cert/* /data/misc/user/0/cacerts-added/
 
+    print_log "mount: /system/etc/security/cacerts/"
+    mount -t tmpfs tmpfs /system/etc/security/cacerts/
+    print_log "mount status:$?"
+
+    print_log "move cert: /system/etc/security/cacerts/"
+    cp -f $MODDIR/certificates/* /system/etc/security/cacerts/
+    print_log "move cert status:$?"
+
+    print_log "fix permissions /system/etc/security/cacerts"
+    chown root:root /system/etc/security/cacerts
+    chown -R root:root /system/etc/security/cacerts/
+    chmod -R 644 /system/etc/security/cacerts/
+    chmod 755 /system/etc/security/cacerts
+    chcon u:object_r:system_file:s0 /system/etc/security/cacerts/*
+    print_log "move cert status:$?"
 fi
-
-# All Android versions perform 
-print_log "Backup user custom certificates1"
-cp -f /data/local/tmp/cert/* $MODDIR/certificates/
-cp -f /data/local/tmp/cert/* /data/misc/user/0/cacerts-added/
-
-print_log "mount: /system/etc/security/cacerts/"
-mount -t tmpfs tmpfs /system/etc/security/cacerts/
-print_log "mount status:$?"
-
-print_log "move cert: /system/etc/security/cacerts/"
-cp -f $MODDIR/certificates/* /system/etc/security/cacerts/
-print_log "move cert status:$?"
-
-print_log "fix permissions /system/etc/security/cacerts"
-chown root:root /system/etc/security/cacerts
-chown -R root:root /system/etc/security/cacerts/
-chmod -R 644 /system/etc/security/cacerts/
-chmod 755 /system/etc/security/cacerts
-chcon u:object_r:system_file:s0 /system/etc/security/cacerts/*
-print_log "exit status:$?"
 
 print_log "certificates installed"
