@@ -42,22 +42,33 @@ mount_cert() {
     print_log "move cert status:$?"
 }
 
+fix_permissions() {
+    # "Fix permissions of the system certificate directory"
+    print_log "fix permissions: /data/misc/user/0/cacerts-added/"
+    chown -R root:root /data/misc/user/0/cacerts-added/
+    chmod -R 666 /data/misc/user/0/cacerts-added/
+    chown system:system /data/misc/user/0/cacerts-added
+    chmod 755 /data/misc/user/0/cacerts-added
+    print_log "fix permissions status:$?"
+}
+
 print_log "start move cert !"
 print_log "current sdk version is $sdk_version_number"
 
-print_log "Backup system certificates1"
+print_log "Backup system certificates"
 cp -u /system/etc/security/cacerts/* $MODDIR/certificates
 cp -u /data/misc/user/0/cacerts-added/* $MODDIR/certificates/
 
 # Android version >= 14 execute
 if [ "$sdk_version_number" -ge 34 ]; then
 
-    print_log "Backup system certificates2"
+    print_log "Backup system certificates"
     cp -u /apex/com.android.conscrypt/cacerts/* $MODDIR/certificates/
 
-    print_log "Backup user custom certificates2"
+    print_log "Backup user custom certificates"
     cp -f /data/local/tmp/cert/* $MODDIR/certificates/
     cp -f /data/local/tmp/cert/* /data/misc/user/0/cacerts-added/
+    fix_permissions
 
     print_log "find system conscrypt directory"
     apex_dir=$(find /apex -type d -name "com.android.conscrypt@*")
@@ -66,9 +77,10 @@ if [ "$sdk_version_number" -ge 34 ]; then
     mount_cert /apex/com.android.conscrypt/cacerts/
 else
     # Android 13 or lower versions perform
-    print_log "Backup user custom certificates1"
+    print_log "Backup user custom certificates"
     cp -f /data/local/tmp/cert/* $MODDIR/certificates/
     cp -f /data/local/tmp/cert/* /data/misc/user/0/cacerts-added/
+    fix_permissions
 
     print_log "mount: /system/etc/security/cacerts/"
     mount -t tmpfs tmpfs /system/etc/security/cacerts/

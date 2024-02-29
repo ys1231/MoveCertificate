@@ -1,4 +1,2 @@
-- 恢复覆盖安装自定义证书，解决内置证书，更新后无法覆盖问题
-- Resume overriding the installation of customized certificates to solve the problem of built-in certificates, which can not be overridden after update
-- 区分 Android 版本，android14 不再处理旧的证书目录
-- Distinguish between Android versions, old certificate directories are no longer handled in android14
+- 修复覆盖安装自定义证书，权限错误导致无法识别证书
+- Fix overriding the installation of custom certificates, a permission error causes the certificate to be unrecognized
