@@ -1,7 +1,7 @@
 # Move Certificates
 
 这是一个`Magisk/KernelSU/APatch`模块 用于移动用户证书到系统证书.支持`Android 7-14`
-如果手机是官方镜像,可能就需要借助模块,如果是自己编译的直接`remount`手动移一下就行了.
+如果手机是官方镜像,可能就需要借助模块,如果是自己编译的直接内置或者`remount`手动移一下就行了.
 
 # 使用方法
 
@@ -30,16 +30,15 @@ openssl x509 -in burp.der -inform der -outform pem -out burp.pem
 # 或者直接使用手机安装后,提取用户目录的证书出来,就不需要考虑计算和格式转换问题.
 ```
 
-![image-20221109212126575](README.assets/image-20221109212126575.png)
+![20221109212126575](README.assets/20221109212126575.png)
 
 4. 手动修改证书(转换前)文件名为`02e06844.0`
 5. `mkdir /data/local/tmp/cert`  这个cert目录需要自己创建
 6. `adb push 02e06844.0  /data/local/tmp/cert/`
 7. 证书推到手机后,重启即可生效，突然发现得保留这种场景。
-8. 
 
 # 使用实测
-![iShot_2024-02-19_01.27.27](README.assets/iShot_2024-02-19_01.27.27.png)
+![2024-02-19_01.27.27](README.assets/2024-02-19_01.27.27.png)
 
 # 参考链接:
 - http://www.zhuoyue360.com/crack/60.html
