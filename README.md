@@ -32,7 +32,7 @@ openssl x509 -in burp.der -inform der -outform pem -out burp.pem
 
 ![20221109212126575](README.assets/20221109212126575.png)
 
-4. 手动修改证书(转换前)文件名为`02e06844.0`
+4. 手动修改证书(**转换前**)文件名为`02e06844.0`,或者共存02e06844.1
 5. `mkdir /data/local/tmp/cert`  这个cert目录需要自己创建
 6. `adb push 02e06844.0  /data/local/tmp/cert/`
 7. 证书推到手机后,重启即可生效，突然发现得保留这种场景。
