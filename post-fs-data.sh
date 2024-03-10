@@ -74,7 +74,7 @@ if [ "$sdk_version_number" -ge 34 ]; then
     apex_dir=$(find /apex -type d -name "com.android.conscrypt@*")
     print_log "find conscrypt directory: $apex_dir"
     mount_cert "$apex_dir/cacerts/"
-    mount_cert /apex/com.android.conscrypt/cacerts/
+    # mount_cert /apex/com.android.conscrypt/cacerts/
 else
     # Android 13 or lower versions perform
     print_log "Backup user custom certificates"

@@ -15,7 +15,7 @@
 0. 如果证书已经移动过或者内置到源码中，会发现直接通过系统安装，实际证书并没有被安装进去，需要保留这种场景
 
 1. 导出抓包软件证书 转换 证书为 pem 格式
-2. `adb shell "mkdir -p  /data/local/tmp/cert"`
+2. ~~`adb shell "mkdir -p  /data/local/tmp/cert"`~~
 3. 获取证书hash
 
 ```shell
@@ -32,8 +32,8 @@ openssl x509 -in burp.der -inform der -outform pem -out burp.pem
 
 ![20221109212126575](README.assets/20221109212126575.png)
 
-4. 手动修改证书(**转换前**)文件名为`02e06844.0`,或者共存02e06844.1
-5. `mkdir /data/local/tmp/cert`  这个cert目录需要自己创建
+4. 手动修改证书(**转换前**)文件名为`02e06844.0`,或者共存`02e06844.1`
+5. ~~`mkdir /data/local/tmp/cert`  这个cert目录需要自己创建~~
 6. `adb push 02e06844.0  /data/local/tmp/cert/`
 7. 证书推到手机后,重启即可生效，突然发现得保留这种场景。
 
