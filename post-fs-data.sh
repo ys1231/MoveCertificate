@@ -24,10 +24,10 @@ print_log() {
     echo "[$LOG_TAG] $@" >>$LOG_PATH
 }
 
-move_user_cert() {
+move_custom_cert() {
     print_log "Backup user custom certificates"
     if [ "$(ls -A /data/local/tmp/cert)" ]; then
-        cp -f /data/local/tmp/cert/* $MODDIR/certificates/
+        cp -f /data/local/tmp/cert/* $MODDIR/certificates
         cp -f /data/local/tmp/cert/* /data/misc/user/0/cacerts-added/
     else
         print_log "The directory '/data/local/tmp/cert' is empty."
@@ -56,6 +56,28 @@ fix_system_permissions() {
     print_log "move cert status:$?"
 }
 
+fix_system_permissions14() {
+    # diff
+    print_log "fix permissions: $1"
+    chown -R system:system "$1"
+    chown root:shell "$1"
+    chmod -R 644 "$1"
+    chmod 755 "$1"
+    print_log "fix permissions: $?"
+}
+
+set_selinux_context(){
+    [ "$(getenforce)" = "Enforcing" ] || return 0
+    default_selinux_context=u:object_r:system_file:s0
+    selinux_context=$(ls -Zd $1 | awk '{print $1}')
+
+    if [ -n "$selinux_context" ] && [ "$selinux_context" != "?" ]; then
+        chcon -R $selinux_context $2
+    else
+        chcon -R $default_selinux_context $2
+    fi
+}
+
 # Android version <= 13 execute
 if [ "$sdk_version_number" -le 33 ]; then
     print_log "start move cert !"
@@ -65,28 +87,38 @@ if [ "$sdk_version_number" -le 33 ]; then
     cp -u /data/misc/user/0/cacerts-added/* $MODDIR/certificates/
     # Android 13 or lower versions perform
     print_log "Backup user custom certificates"
-    move_user_cert
+    move_custom_cert
     fix_user_permissions
 
-    print_log "mount: /system/etc/security/cacerts/"
-    mount -t tmpfs tmpfs /system/etc/security/cacerts/
+    print_log "mount: /system/etc/security/cacerts"
+    mount -t tmpfs tmpfs /system/etc/security/cacerts
     print_log "mount status:$?"
 
-    print_log "move cert: /system/etc/security/cacerts/"
-    cp -f $MODDIR/certificates/* /system/etc/security/cacerts/
+    print_log "move cert: /system/etc/security/cacerts"
+    cp -f $MODDIR/certificates/* /system/etc/security/cacerts
     print_log "move cert status:$?"
-
+    fix_system_permissions
     print_log "certificates installed"
 else
 
     print_log "start move cert !"
     print_log "current sdk version is $sdk_version_number"
     print_log "Backup system certificates"
-    cp -u /apex/com.android.conscrypt/cacerts/* /data/adb/modules/MoveCertificate/certificates
-    cp -u /data/misc/user/0/cacerts-added/* /data/adb/modules/MoveCertificate/certificates
+    mount -t tmpfs tmpfs $MODDIR/certificates
+    cp -u /apex/com.android.conscrypt/cacerts/* $MODDIR/certificates
+    cp -u /data/misc/user/0/cacerts-added/* $MODDIR/certificates
     print_log "Backup user custom certificates"
-    move_user_cert
+    move_custom_cert
     fix_user_permissions
-    fix_system_permissions /data/adb/modules/MoveCertificate/certificates
+    fix_system_permissions14 $MODDIR/certificates
 
+    print_log "find system conscrypt directory"
+    apex_dir=$(find /apex -type d -name "com.android.conscrypt@*")
+    print_log "find conscrypt directory: $apex_dir"
+
+    set_selinux_context /apex/com.android.conscrypt/cacerts $MODDIR/certificates
+    # These two directories are mapped to the same block
+    mount -o bind $MODDIR/certificates /apex/com.android.conscrypt/cacerts
+    mount -o bind $MODDIR/certificates $apex_dir/cacerts
+    print_log "certificates installed"
 fi
