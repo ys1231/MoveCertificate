@@ -1,7 +1,7 @@
-- fix(sh): :bug: #19 System certificate not recognized
-- support recognition of certificates in system security settings.
-- 修复在系统安全设置中识别证书.
-- 修复模块导致系统重启.
+- fix(sh): :bug: 修复在系统安全设置中识别证书,在zygote启动之前挂载证书.
+- fix(sh): :bug: #19 修复模块导致系统重启,恢复selinux上下文设置即可.
+- fix(sh): :bug: Fix identifying certificates in system security settings and mounting certificates before starting zygote
+- fix(sh): :bug: #19 Fix the module that caused the system to restart, restore the selinux context settings
 ----
 - Fix(sh)::fire: #15 修复模块无效
 - 实际为较新的`Android14`在挂载系统证书目录会报错,从而导致系统启动失败,模块安装中断.
