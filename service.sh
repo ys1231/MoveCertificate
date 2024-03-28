@@ -24,18 +24,6 @@ print_log() {
     echo "[$LOG_TAG] $@" >>$LOG_PATH
 }
 
-# mount_cert() {
-#     # "Mount a temporary directory to overwrite the system certificate directory"
-#     print_log "mount: $1"
-#     mount -t tmpfs tmpfs "$1"
-#     print_log "mount status:$?"
-
-#     # "Copy all certificates to the system certificate directory"
-#     print_log "move cert: $1"
-#     cp -f $MODDIR/certificates/* "$1"
-#     print_log "move cert status:$?"
-# }
-
 move_user_cert() {
 
     if [ "$(ls -A /data/local/tmp/cert)" ]; then
@@ -96,10 +84,5 @@ if [ "$sdk_version_number" -ge 34 ]; then
             nsenter --mount=/proc/$Z_PID/ns/mnt -- /bin/mount --bind $MODDIR/certificates $apex_dir/cacerts
         fi
     done
-    APP_PIDS=$(pgrep -P $ZYGOTE_PID,$ZYGOTE64_PID)
-    for PID in $APP_PIDS; do
-        nsenter --mount=/proc/$PID/ns/mnt -- /bin/mount --bind $MODDIR/certificates /apex/com.android.conscrypt/cacerts &
-    done
-    wait
     print_log "certificates installed$?"
 fi

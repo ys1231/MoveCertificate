@@ -1,6 +1,6 @@
-- fix(sh): :bug: Fix system reboot due to module.
+- fix(sh): :bug: #19 System certificate not recognized
 - support recognition of certificates in system security settings.
-- 支持在系统安全设置中识别证书.
+- 修复在系统安全设置中识别证书.
 - 修复模块导致系统重启.
 ----
 - Fix(sh)::fire: #15 修复模块无效

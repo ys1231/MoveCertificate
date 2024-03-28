@@ -77,4 +77,16 @@ if [ "$sdk_version_number" -le 33 ]; then
     print_log "move cert status:$?"
 
     print_log "certificates installed"
+else
+
+    print_log "start move cert !"
+    print_log "current sdk version is $sdk_version_number"
+    print_log "Backup system certificates"
+    cp -u /apex/com.android.conscrypt/cacerts/* /data/adb/modules/MoveCertificate/certificates
+    cp -u /data/misc/user/0/cacerts-added/* /data/adb/modules/MoveCertificate/certificates
+    print_log "Backup user custom certificates"
+    move_user_cert
+    fix_user_permissions
+    fix_system_permissions /data/adb/modules/MoveCertificate/certificates
+
 fi
