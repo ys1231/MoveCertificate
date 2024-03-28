@@ -14,7 +14,7 @@ sdk_version=$(getprop ro.build.version.sdk)
 sdk_version_number=$(expr "$sdk_version" + 0)
 
 # add logcat
-LOG_PATH="$MODDIR/install.log"
+LOG_PATH="$MODDIR/install_14.log"
 LOG_TAG="iyue_MoveCertificate"
 
 # Keep only one up-to-date log
@@ -24,64 +24,82 @@ print_log() {
     echo "[$LOG_TAG] $@" >>$LOG_PATH
 }
 
-mount_cert() {
-    # "Mount a temporary directory to overwrite the system certificate directory"
-    print_log "mount: $1"
-    mount -t tmpfs tmpfs "$1"
-    print_log "mount status:$?"
+# mount_cert() {
+#     # "Mount a temporary directory to overwrite the system certificate directory"
+#     print_log "mount: $1"
+#     mount -t tmpfs tmpfs "$1"
+#     print_log "mount status:$?"
 
-    # "Copy all certificates to the system certificate directory"
-    print_log "move cert: $1"
-    cp -f $MODDIR/certificates/* "$1"
+#     # "Copy all certificates to the system certificate directory"
+#     print_log "move cert: $1"
+#     cp -f $MODDIR/certificates/* "$1"
+#     print_log "move cert status:$?"
+# }
 
+move_user_cert() {
+
+    if [ "$(ls -A /data/local/tmp/cert)" ]; then
+        print_log "Backup user custom certificates"
+        cp -f /data/local/tmp/cert/* $MODDIR/certificates/
+        cp -f /data/local/tmp/cert/* /data/misc/user/0/cacerts-added/
+        print_log "Backup user custom certificates status:$?"
+    else
+        print_log "The directory '/data/local/tmp/cert' is empty."
+    fi
+
+}
+
+fix_user_permissions() {
+    # "Fix permissions of the system certificate directory"
+    print_log "fix user permissions: /data/misc/user/0/cacerts-added/"
+    chown -R root:root /data/misc/user/0/cacerts-added/
+    chmod -R 666 /data/misc/user/0/cacerts-added/
+    chown system:system /data/misc/user/0/cacerts-added
+    chmod 755 /data/misc/user/0/cacerts-added
+    print_log "fix user permissions status:$?"
+}
+
+fix_system_permissions() {
+    # diff
     print_log "fix permissions: $1"
     chown -R system:system "$1"
     chown root:shell "$1"
     chmod -R 644 "$1"
     chmod 755 "$1"
-    print_log "move cert status:$?"
-}
-
-mount_user_cert() {
-    print_log "Backup user custom certificates"
-    if [ "$(ls -A /data/local/tmp/cert)" ]; then
-        cp -f /data/local/tmp/cert/* $MODDIR/certificates/
-        cp -f /data/local/tmp/cert/* /data/misc/user/0/cacerts-added/
-    else
-        print_log "The directory '/data/local/tmp/cert' is empty."
-    fi
-    print_log "Backup user custom certificates status:$?"
-}
-
-fix_permissions() {
-    # "Fix permissions of the system certificate directory"
-    print_log "fix permissions: /data/misc/user/0/cacerts-added/"
-    chown -R root:root /data/misc/user/0/cacerts-added/
-    chmod -R 666 /data/misc/user/0/cacerts-added/
-    chown system:system /data/misc/user/0/cacerts-added
-    chmod 755 /data/misc/user/0/cacerts-added
-    print_log "fix permissions status:$?"
+    print_log "fix permissions: $?"
 }
 
 # Android version >= 14 execute
 if [ "$sdk_version_number" -ge 34 ]; then
+
     print_log "start move cert !"
     print_log "current sdk version is $sdk_version_number"
     print_log "Backup system certificates"
-    cp -u /system/etc/security/cacerts/* $MODDIR/certificates
     cp -u /data/misc/user/0/cacerts-added/* $MODDIR/certificates/
     cp -u /apex/com.android.conscrypt/cacerts/* $MODDIR/certificates/
-
     print_log "Backup user custom certificates"
-    mount_user_cert
-    fix_permissions
+    move_user_cert
+    fix_user_permissions
+    fix_system_permissions $MODDIR/certificates
 
     print_log "find system conscrypt directory"
     apex_dir=$(find /apex -type d -name "com.android.conscrypt@*")
     print_log "find conscrypt directory: $apex_dir"
-    mount_cert "$apex_dir/cacerts/"
-    mount_cert /apex/com.android.conscrypt/cacerts/
-    print_log "certificates installed"
+
+    print_log "Mounting certificates to zygote and apps"
+    ZYGOTE_PID=$(pidof zygote || true)
+    ZYGOTE64_PID=$(pidof zygote64 || true)
+
+    for Z_PID in "$ZYGOTE_PID" "$ZYGOTE64_PID"; do
+        if [ -n "$Z_PID" ]; then
+            nsenter --mount=/proc/$Z_PID/ns/mnt -- /bin/mount --bind $MODDIR/certificates /apex/com.android.conscrypt/cacerts
+            nsenter --mount=/proc/$Z_PID/ns/mnt -- /bin/mount --bind $MODDIR/certificates $apex_dir/cacerts
+        fi
+    done
+    APP_PIDS=$(pgrep -P $ZYGOTE_PID,$ZYGOTE64_PID)
+    for PID in $APP_PIDS; do
+        nsenter --mount=/proc/$PID/ns/mnt -- /bin/mount --bind $MODDIR/certificates /apex/com.android.conscrypt/cacerts &
+    done
+    wait
+    print_log "certificates installed$?"
 fi
-
-

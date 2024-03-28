@@ -1,5 +1,7 @@
-- fix(sh): :bug: Fix system reboot due to module
-- 修复模块导致系统重启 
+- fix(sh): :bug: Fix system reboot due to module.
+- support recognition of certificates in system security settings.
+- 支持在系统安全设置中识别证书.
+- 修复模块导致系统重启.
 ----
 - Fix(sh)::fire: #15 修复模块无效
 - 实际为较新的`Android14`在挂载系统证书目录会报错,从而导致系统启动失败,模块安装中断.

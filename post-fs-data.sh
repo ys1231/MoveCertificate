@@ -24,25 +24,7 @@ print_log() {
     echo "[$LOG_TAG] $@" >>$LOG_PATH
 }
 
-mount_cert() {
-    # "Mount a temporary directory to overwrite the system certificate directory"
-    print_log "mount: $1"
-    mount -t tmpfs tmpfs "$1"
-    print_log "mount status:$?"
-
-    # "Copy all certificates to the system certificate directory"
-    print_log "move cert: $1"
-    cp -f $MODDIR/certificates/* "$1"
-
-    print_log "fix permissions: $1"
-    chown -R system:system "$1"
-    chown root:shell "$1"
-    chmod -R 644 "$1"
-    chmod 755 "$1"
-    print_log "move cert status:$?"
-}
-
-mount_user_cert() {
+move_user_cert() {
     print_log "Backup user custom certificates"
     if [ "$(ls -A /data/local/tmp/cert)" ]; then
         cp -f /data/local/tmp/cert/* $MODDIR/certificates/
@@ -53,28 +35,38 @@ mount_user_cert() {
     print_log "Backup user custom certificates status:$?"
 }
 
-fix_permissions() {
+fix_user_permissions() {
     # "Fix permissions of the system certificate directory"
-    print_log "fix permissions: /data/misc/user/0/cacerts-added/"
+    print_log "fix user permissions: /data/misc/user/0/cacerts-added/"
     chown -R root:root /data/misc/user/0/cacerts-added/
     chmod -R 666 /data/misc/user/0/cacerts-added/
     chown system:system /data/misc/user/0/cacerts-added
     chmod 755 /data/misc/user/0/cacerts-added
-    print_log "fix permissions status:$?"
+    print_log "fix user permissions status:$?"
 }
 
-# Android version >= 14 execute
+fix_system_permissions() {
+    # diff
+    print_log "fix permissions /system/etc/security/cacerts"
+    chown root:root /system/etc/security/cacerts
+    chown -R root:root /system/etc/security/cacerts/
+    chmod -R 644 /system/etc/security/cacerts/
+    chmod 755 /system/etc/security/cacerts
+    chcon u:object_r:system_file:s0 /system/etc/security/cacerts/*
+    print_log "move cert status:$?"
+}
+
+# Android version <= 13 execute
 if [ "$sdk_version_number" -le 33 ]; then
     print_log "start move cert !"
     print_log "current sdk version is $sdk_version_number"
-
     print_log "Backup system certificates"
     cp -u /system/etc/security/cacerts/* $MODDIR/certificates
     cp -u /data/misc/user/0/cacerts-added/* $MODDIR/certificates/
     # Android 13 or lower versions perform
     print_log "Backup user custom certificates"
-    mount_user_cert
-    fix_permissions
+    move_user_cert
+    fix_user_permissions
 
     print_log "mount: /system/etc/security/cacerts/"
     mount -t tmpfs tmpfs /system/etc/security/cacerts/
@@ -84,14 +76,5 @@ if [ "$sdk_version_number" -le 33 ]; then
     cp -f $MODDIR/certificates/* /system/etc/security/cacerts/
     print_log "move cert status:$?"
 
-    print_log "fix permissions /system/etc/security/cacerts"
-    chown root:root /system/etc/security/cacerts
-    chown -R root:root /system/etc/security/cacerts/
-    chmod -R 644 /system/etc/security/cacerts/
-    chmod 755 /system/etc/security/cacerts
-    chcon u:object_r:system_file:s0 /system/etc/security/cacerts/*
-    print_log "move cert status:$?"
     print_log "certificates installed"
 fi
-
-
