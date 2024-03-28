@@ -6,23 +6,15 @@
 # if Magisk change its mount point in the future
 MODDIR=${0%/*}
 
-# This script will be executed in late_start service mode
-# At this point, the system has already started
+# This script will be executed in post-fs-data mode
+# Android 14 cannot be earlier than Zygote
 sdk_version=$(getprop ro.build.version.sdk)
 # debug
 #sdk_version=34
 sdk_version_number=$(expr "$sdk_version" + 0)
 
-if [ "$sdk_version_number" -le 33 ]; then
-    # Android version less than 14
-    exit 0
-fi
-# wait for boot to complete
-while [ "$(getprop sys.boot_completed)" != 1 ]; do
-    sleep 1
-done
 # add logcat
-LOG_PATH="$MODDIR/install14.log"
+LOG_PATH="$MODDIR/install.log"
 LOG_TAG="iyue_MoveCertificate"
 
 # Keep only one up-to-date log
@@ -31,6 +23,7 @@ echo "[$LOG_TAG] Keep only one up-to-date log" >$LOG_PATH
 print_log() {
     echo "[$LOG_TAG] $@" >>$LOG_PATH
 }
+
 mount_cert() {
     # "Mount a temporary directory to overwrite the system certificate directory"
     print_log "mount: $1"
@@ -49,5 +42,46 @@ mount_cert() {
     print_log "move cert status:$?"
 }
 
-mount_cert /apex/com.android.conscrypt/cacerts/
-# ensure boot has actually completed
+mount_user_cert() {
+    print_log "Backup user custom certificates"
+    if [ "$(ls -A /data/local/tmp/cert)" ]; then
+        cp -f /data/local/tmp/cert/* $MODDIR/certificates/
+        cp -f /data/local/tmp/cert/* /data/misc/user/0/cacerts-added/
+    else
+        print_log "The directory '/data/local/tmp/cert' is empty."
+    fi
+    print_log "Backup user custom certificates status:$?"
+}
+
+fix_permissions() {
+    # "Fix permissions of the system certificate directory"
+    print_log "fix permissions: /data/misc/user/0/cacerts-added/"
+    chown -R root:root /data/misc/user/0/cacerts-added/
+    chmod -R 666 /data/misc/user/0/cacerts-added/
+    chown system:system /data/misc/user/0/cacerts-added
+    chmod 755 /data/misc/user/0/cacerts-added
+    print_log "fix permissions status:$?"
+}
+
+# Android version >= 14 execute
+if [ "$sdk_version_number" -ge 34 ]; then
+    print_log "start move cert !"
+    print_log "current sdk version is $sdk_version_number"
+    print_log "Backup system certificates"
+    cp -u /system/etc/security/cacerts/* $MODDIR/certificates
+    cp -u /data/misc/user/0/cacerts-added/* $MODDIR/certificates/
+    cp -u /apex/com.android.conscrypt/cacerts/* $MODDIR/certificates/
+
+    print_log "Backup user custom certificates"
+    mount_user_cert
+    fix_permissions
+
+    print_log "find system conscrypt directory"
+    apex_dir=$(find /apex -type d -name "com.android.conscrypt@*")
+    print_log "find conscrypt directory: $apex_dir"
+    mount_cert "$apex_dir/cacerts/"
+    mount_cert /apex/com.android.conscrypt/cacerts/
+    print_log "certificates installed"
+fi
+
+

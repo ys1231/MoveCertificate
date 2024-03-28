@@ -42,6 +42,17 @@ mount_cert() {
     print_log "move cert status:$?"
 }
 
+mount_user_cert() {
+    print_log "Backup user custom certificates"
+    if [ "$(ls -A /data/local/tmp/cert)" ]; then
+        cp -f /data/local/tmp/cert/* $MODDIR/certificates/
+        cp -f /data/local/tmp/cert/* /data/misc/user/0/cacerts-added/
+    else
+        print_log "The directory '/data/local/tmp/cert' is empty."
+    fi
+    print_log "Backup user custom certificates status:$?"
+}
+
 fix_permissions() {
     # "Fix permissions of the system certificate directory"
     print_log "fix permissions: /data/misc/user/0/cacerts-added/"
@@ -52,34 +63,17 @@ fix_permissions() {
     print_log "fix permissions status:$?"
 }
 
-print_log "start move cert !"
-print_log "current sdk version is $sdk_version_number"
-
-print_log "Backup system certificates"
-cp -u /system/etc/security/cacerts/* $MODDIR/certificates
-cp -u /data/misc/user/0/cacerts-added/* $MODDIR/certificates/
-
 # Android version >= 14 execute
-if [ "$sdk_version_number" -ge 34 ]; then
+if [ "$sdk_version_number" -le 33 ]; then
+    print_log "start move cert !"
+    print_log "current sdk version is $sdk_version_number"
 
     print_log "Backup system certificates"
-    cp -u /apex/com.android.conscrypt/cacerts/* $MODDIR/certificates/
-
-    print_log "Backup user custom certificates"
-    cp -f /data/local/tmp/cert/* $MODDIR/certificates/
-    cp -f /data/local/tmp/cert/* /data/misc/user/0/cacerts-added/
-    fix_permissions
-
-    print_log "find system conscrypt directory"
-    apex_dir=$(find /apex -type d -name "com.android.conscrypt@*")
-    print_log "find conscrypt directory: $apex_dir"
-    mount_cert "$apex_dir/cacerts/"
-    # mount_cert /apex/com.android.conscrypt/cacerts/
-else
+    cp -u /system/etc/security/cacerts/* $MODDIR/certificates
+    cp -u /data/misc/user/0/cacerts-added/* $MODDIR/certificates/
     # Android 13 or lower versions perform
     print_log "Backup user custom certificates"
-    cp -f /data/local/tmp/cert/* $MODDIR/certificates/
-    cp -f /data/local/tmp/cert/* /data/misc/user/0/cacerts-added/
+    mount_user_cert
     fix_permissions
 
     print_log "mount: /system/etc/security/cacerts/"
@@ -97,6 +91,7 @@ else
     chmod 755 /system/etc/security/cacerts
     chcon u:object_r:system_file:s0 /system/etc/security/cacerts/*
     print_log "move cert status:$?"
+    print_log "certificates installed"
 fi
 
-print_log "certificates installed"
+
