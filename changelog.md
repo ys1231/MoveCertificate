@@ -1,8 +1,10 @@
+- fix(sh): :bug: Fix system reboot due to module
+- 修复模块导致系统重启 
+----
 - Fix(sh)::fire: #15 修复模块无效
 - 实际为较新的`Android14`在挂载系统证书目录会报错,从而导致系统启动失败,模块安装中断.
 - 如果出现上述情况,请尽快更新,不要试图直接修改脚本,需要完全重新刷机
 - 另外此次更新会导致,在系统设置中不会出现证书,但是可以正常抓包.
-----
 - Fix(sh): :fire: #15 fix module not effective
 - In fact, the newer version of Android 14 will report an error when mounting the system certificate directory, resulting in system startup failure and module installation interruption
 - If the above situation occurs, please update as soon as possible and do not attempt to directly modify the script. A complete reboot is required
