@@ -36,7 +36,7 @@ on_install() {
   fi
   # ui_print "- mkdir $MODPATH/certificates"
   mkdir -p -m 755 "$D_CERTIFICATE"
-
+  mkdir -p -m 755 /data/misc/user/0/cacerts-added
 }
 
 # You can add more functions to assist your custom script code

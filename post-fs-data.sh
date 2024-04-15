@@ -91,6 +91,7 @@ if [ "$sdk_version_number" -le 33 ]; then
     fix_user_permissions
 
     print_log "mount: /system/etc/security/cacerts"
+    selinux_context=$(ls -Zd /system/etc/security/cacerts | awk '{print $1}')
     mount -t tmpfs tmpfs /system/etc/security/cacerts
     print_log "mount status:$?"
 
@@ -99,6 +100,13 @@ if [ "$sdk_version_number" -le 33 ]; then
     print_log "move cert status:$?"
     fix_system_permissions
     print_log "certificates installed"
+    [ "$(getenforce)" = "Enforcing" ] || return 0
+    default_selinux_context=u:object_r:system_file:s0
+    if [ -n "$selinux_context" ] && [ "$selinux_context" != "?" ]; then
+        chcon -R $selinux_context /system/etc/security/cacerts
+    else
+        chcon -R $default_selinux_context /system/etc/security/cacerts
+    fi
 else
 
     print_log "start move cert !"

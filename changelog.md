@@ -1,3 +1,6 @@
+- fix(sh): :bug: #21 修复用户证书目录可能不存在导致模块无效.
+- fix(sh): :bug: #21 Fix user certificate directory may not exist resulting in invalid module.
+----
 - fix(sh): :bug: 修复在系统安全设置中识别证书,在zygote启动之前挂载证书.
 - fix(sh): :bug: #19 修复模块导致系统重启,恢复selinux上下文设置即可.
 - fix(sh): :bug: Fix identifying certificates in system security settings and mounting certificates before starting zygote
