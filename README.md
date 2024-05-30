@@ -6,7 +6,7 @@
 # 使用方法
 
 1. 导出证书后直接`push`到手机,直接安装重启即可,不需要格式转换.
-2. 可搭配 (appproxy)[https://github.com/ys1231/appproxy] vpn代理工具.
+2. 可搭配 [appproxy](https://github.com/ys1231/appproxy) vpn代理工具.
 
 ## 手动安装证书到系统证书目录
 
