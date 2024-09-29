@@ -1,3 +1,5 @@
+- fix(update): :fire: 修复更新链接
+---
 - fix(sh): :bug: #21 修复用户证书目录可能不存在导致模块无效.
 - fix(sh): :bug: #21 Fix user certificate directory may not exist resulting in invalid module.
 ----
