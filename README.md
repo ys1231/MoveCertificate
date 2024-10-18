@@ -20,14 +20,22 @@
 3. 获取证书hash
 
 ```shell
-#openssl版本在1.0以上的版本的执行下面这一句---------------------
+# pem 证书 Android 系统使用 der 所以移动后的证书格式需要转成 der
+## 1. 计算 hash
+### 不同openssl版本 1.0以上的
 openssl x509 -inform PEM -subject_hash_old -in cacert.pem
-#openssl版本在1.0以下的版本的执行下面这一句
+### 不同openssl版本 1.0以下的
 openssl x509 -inform PEM -subject_hash -in cacert.pem
-# 如是.der 需要先转换为pem 以burp为例
-openssl x509 -in burp.der -inform der -outform pem -out burp.pem
-# 如果导出的证书是pem,直接计算并修改名称,例如是.der 需要先转换为pem.
-# 计算名称之后需要使用转换前的证书修改名称.(可验证md5会发现使用手机进行安装的证书md5和转换前证书md5一致)
+## 2. 转der
+openssl x509 -in cacert.pem -outform der -out cacert.der
+mv cacert.der 02e06844.0
+
+# der 证书 
+## 1. 先转 pem 计算hash
+openssl x509 -in cacert.der -inform der -outform pem -out cacert.pem
+openssl x509 -inform PEM -subject_hash_old -in cacert.pem
+## 2. 重命名证书为 hash值.0
+mv cacert.der 02e06844.0
 # 或者直接使用手机安装后,提取用户目录的证书出来,就不需要考虑计算和格式转换问题.
 ```
 
