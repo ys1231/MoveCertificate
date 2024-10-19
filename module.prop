@@ -4,4 +4,4 @@ version=v1.5
 versionCode=16
 author=iyue
 description=Supports magiskv20.4+/kernelsu/APatch Android 7-14 move certificates
-updateJson=https://pfile.ys1231.cn:/modules/MoveCertificate/update.json
+updateJson=https://pfile.ys1231.cn/modules/MoveCertificate/update.json
