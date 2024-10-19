@@ -1,4 +1,9 @@
-- fix(update): :fire: 修复更新链接
+- feat(web): :fire: 新增 web 界面可显示和删除已安装的证书...
+- feat(web): :fire: New web interface to display and delete installed certificates.
+- chore(log): :loud_sound: 日志优化.
+- chore(log): :loud_sound: Log optimization.
+---
+- fix(update): :fire: 修复更新链接.
 ---
 - fix(sh): :bug: #21 修复用户证书目录可能不存在导致模块无效.
 - fix(sh): :bug: #21 Fix user certificate directory may not exist resulting in invalid module.
