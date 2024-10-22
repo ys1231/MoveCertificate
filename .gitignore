@@ -1,3 +1,9 @@
 *.zip
 .DS_Store
 webdev
+webroot
+.idea
+.vscode
+node_modules
+package-lock.json
+/.cache/
