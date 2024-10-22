@@ -1,0 +1,23 @@
+{
+  "name": "movecertificate",
+  "version": "1.0.0",
+  "main": "script.js",
+  "scripts": {
+    "start": "parcel serve index.html -d webroot",
+    "build": "rm -rf ./webroot/* && parcel build index.html -d webroot",
+    "push": "scp ./webroot/*  root@192.168.1.3:/data/adb/modules/MoveCertificate/webroot/",
+    "build_push": "rm -rf ./webroot/* && parcel build index.html -d webroot && scp ./webroot/*  root@192.168.1.3:/data/adb/modules/MoveCertificate/webroot/",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "private": true,
+  "dependencies": {
+    "kernelsu": "^1.0.6"
+  },
+  "devDependencies": {
+    "parcel-bundler": "^1.12.5"
+  },
+  "keywords": [],
+  "author": "iyue",
+  "license": "ISC",
+  "description": "The MoveCertificate web page is used to display and delete certificates."
+}
