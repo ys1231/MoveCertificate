@@ -13,25 +13,29 @@
             line-height: 1.6;
             background-color: #f0f0f0;
         }
+
         .container {
             display: flex;
             flex-direction: column;
             min-height: 100vh;
             box-sizing: border-box;
         }
+
         .content {
             flex: 1;
             background-color: #ffffff;
             padding: 20px;
             border-radius: 5px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
             overflow-y: auto;
         }
+
         h1 {
             text-align: left;
             color: #333;
             margin-bottom: 20px;
         }
+
         .groupbox {
             border: 1px solid #ccc;
             border-radius: 5px;
@@ -39,6 +43,7 @@
             margin-top: 20px;
             position: relative;
         }
+
         .groupbox-title {
             position: absolute;
             top: -10px;
@@ -48,11 +53,13 @@
             font-weight: bold;
             color: #333;
         }
+
         ul {
             list-style-type: none;
             padding: 0;
             margin: 10px 0 0 0;
         }
+
         li {
             display: flex;
             align-items: center;
@@ -62,33 +69,39 @@
             border-radius: 3px;
             position: relative;
         }
+
         li:last-child {
             margin-bottom: 0;
         }
+
         .status-dot {
             width: 15px;
             height: 15px;
             border-radius: 50%;
             margin-right: 10px;
         }
+
         .status-dot.green {
             background-color: green;
         }
+
         .status-dot.gray {
             background-color: gray;
         }
+
         .delete-button {
             position: absolute;
             right: 10px;
             top: 50%;
             transform: translateY(-50%);
             display: none;
-            background-color: red;
+            background-color: rgba(253, 0, 0, 0.76);
             color: white;
             border: none;
             border-radius: 5px;
             padding: 5px;
         }
+
         #versionInfo {
             margin: 0;
             font-size: 14px;
@@ -96,6 +109,7 @@
             word-break: break-all; /* 非CJK文本内的单词短横线换行 */
             white-space: pre-wrap; /* 保留空白符序列，但自动换行 */
         }
+
         #logger {
             margin: 0;
             font-size: 14px;
@@ -103,6 +117,7 @@
             word-break: break-all; /* 非CJK文本内的单词短横线换行 */
             white-space: pre-wrap; /* 保留空白符序列，但自动换行 */
         }
+
         /* Modal styles */
         .modal {
             display: none;
@@ -113,10 +128,11 @@
             width: 100%;
             height: 100%;
             overflow: auto;
-            background-color: rgb(0,0,0);
-            background-color: rgba(0,0,0,0.4);
+            background-color: rgb(0, 0, 0);
+            background-color: rgba(0, 0, 0, 0.4);
             padding-top: 60px;
         }
+
         .modal-content {
             background-color: #fefefe;
             margin: 5% auto;
@@ -126,30 +142,36 @@
             max-width: 300px;
             border-radius: 10px;
         }
+
         .modal-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 20px;
         }
+
         .modal-header h2 {
             margin: 0;
         }
+
         .modal-footer {
             display: flex;
             justify-content: flex-end;
             gap: 10px;
         }
+
         .modal-footer button {
             padding: 10px 20px;
             border: none;
             border-radius: 5px;
             cursor: pointer;
         }
+
         .modal-footer .cancel-btn {
             background-color: #ccc;
             color: #333;
         }
+
         .modal-footer .confirm-btn {
             background-color: red;
             color: white;
@@ -180,7 +202,7 @@
         <div class="modal-header">
             <h2>此操作不可逆</h2>
         </div>
-        <p>确认要删除这个证书吗？</p>
+        <p id="confirmMessage">确认要删除这个证书吗？</p>
         <div class="modal-footer">
             <button class="cancel-btn" id="cancelDelete">取消</button>
             <button class="confirm-btn" id="confirmDelete">确认</button>

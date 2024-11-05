@@ -14,9 +14,9 @@ const certModule = "/data/adb/modules/MoveCertificate/certificates"
 async function getFileList(path) {
     const {errno, stdout, stderr} = await exec('ls ' + path);
     if (errno === 0) {
-        try{
+        try {
             return stdout.toString().trim().split('\n');
-        }catch (e) {
+        } catch (e) {
             toast(`获取 path:${path} 文件列表失败:${stderr}`)
             return [];
         }
@@ -24,34 +24,29 @@ async function getFileList(path) {
     }
 }
 
-async function readFile(path){
-    const {errno, stdout, stderr} = await exec('cat ' + path);
-    if (errno === 0) {
-        // const encoder = new TextEncoder();
-        // return encoder.encode(stdout).buffer;
-        return stdout;
-    }else {
-        toast(`读取 path:${path} 失败:${stderr}`)
-        return "";
-    }
-
-    // return await promises.readFile(path);
-}
-
 /**
  * 获取证书名称
  * @param path
  * @returns {Promise<string>}
  */
-async function getCertName(path){
+async function getCertName(path) {
 
-    let certNames = ["Fiddler Root Certificate","PortSwigger","Charles Proxy CA","Reqable CA","mitmproxy"]
+    let nameDict = {
+        "9a5ba575": "PortSwigger",
+        "84040dbc": "Charles Proxy CA",
+        "0725b47c": "Fiddler Root CA",
+        "7f4536e6": "Reqable CA",
+        "c8750f0d": "Mitmproxy CA",
+        "0f4ed297": "AdGuard Personal CA",
+        "364618e0": "Reqable Proxy CA",
+        "87bc3517": "HttpCanary CA",
+        "243f0bfb": "ProxyPin CA"
+    };
 
     try {
-        let certText = await readFile(path);
-        for (const item of certNames) {
-            if (certText.includes(item)){
-                return item;
+        for (const [key, value] of Object.entries(nameDict)) {
+            if (path.includes(key)) {
+                return value;
             }
         }
         return "Unknown"
@@ -62,23 +57,23 @@ async function getCertName(path){
     }
 }
 
-async function deleteCert(file){
+async function deleteCert(file) {
     const {errno, stdout, stderr} = await exec('getprop ro.build.version.release');
     const systemVersion = Number(stdout)
-    if (systemVersion === Number.NaN){
+    if (systemVersion === Number.NaN) {
         toast(`获取系统版本失败:${stderr}`)
     }
 
-    if (systemVersion >= 14){
+    if (systemVersion >= 14) {
         // 14及以上版本
-        await exec(`rm -f ${certHightSystem+file}`);
-    }else {
+        await exec(`rm -f ${certHightSystem + file}`);
+    } else {
         // 14以下版本
-        await exec(`rm -f ${certLowSystem+file}`);
+        await exec(`rm -f ${certLowSystem + file}`);
     }
-    await exec(`rm -f ${certCustom+file}`)
-    await exec(`rm -f ${certModule+file}`)
-    await exec(`rm -f ${certUserSystem+file}`)
+    await exec(`rm -f ${certCustom + file}`)
+    await exec(`rm -f ${certModule + file}`)
+    await exec(`rm -f ${certUserSystem + file}`)
 
 }
 
@@ -121,7 +116,7 @@ async function getInstallCertResults() {
     // 1. 获取当前系统版本
     const {errno, stdout, stderr} = await exec('getprop ro.build.version.release');
     const systemVersion = Number(stdout)
-    if (systemVersion === Number.NaN){
+    if (systemVersion === Number.NaN) {
         toast(`获取系统版本失败:${stderr}`)
         return [];
     }
@@ -136,7 +131,7 @@ async function getInstallCertResults() {
     } else {
         systemCerts = await getFileList(certLowSystem);
     }
-    if (!userCerts.length && !systemCerts.length){
+    if (!userCerts.length && !systemCerts.length) {
         toast(`未安装证书:userCerts->${userCerts.length},systemCerts->${systemCerts.length}`)
         return [];
     }
@@ -144,11 +139,11 @@ async function getInstallCertResults() {
     // 4. 获取证书状态 名称
     let results = [];
     for (const item of userCerts) {
-        let name = await getCertName(certUserSystem+item);
-        if(systemCerts.includes(item)){
+        let name = await getCertName(certUserSystem + item);
+        if (systemCerts.includes(item)) {
             results[item] = "success";
             results.push({status: 'success', name: `${item}: ${name}`})
-        }else{
+        } else {
             results.push({status: 'failed', name: `${item}: ${name}`})
         }
     }
@@ -179,12 +174,14 @@ async function displayResults() {
 
     // 获取模态对话框及其元素
     const modal = document.getElementById('deleteModal');
+    const confirmMessage = document.getElementById('confirmMessage');
     const confirmDeleteButton = document.getElementById('confirmDelete');
     const cancelDeleteButton = document.getElementById('cancelDelete');
 
     const showModal = (target) => {
         deleteTarget = target;
         modal.style.display = 'block';
+        confirmMessage.textContent = `确定要删除 ${target.textContent.split(':')[0]} 证书吗?`;
     };
 
     const hideModal = () => {
@@ -223,25 +220,26 @@ async function displayResults() {
         const deleteButton = document.createElement('button');
         deleteButton.textContent = '删除';
         deleteButton.className = 'delete-button';
+        deleteButton.style.display = 'block';
         deleteButton.onclick = () => showModal(li);
         li.appendChild(deleteButton);
 
-        li.oncontextmenu = (e) => {
-            e.preventDefault();
-            deleteButton.style.display = 'block';
-        }
-
-        li.onmouseleave = () => {
-            deleteButton.style.display = 'none';
-        }
+        // li.oncontextmenu = (e) => {
+        //     e.preventDefault();
+        //     deleteButton.style.display = 'block';
+        // }
+        //
+        // li.onmouseleave = () => {
+        //     deleteButton.style.display = 'none';
+        // }
 
         list.appendChild(li);
     }));
 }
 
-// 显示 MoveCertificate
+// 显示 Loading
 function displayHelloWorld() {
-    toast("MoveCertificate!");
+    toast("Loading MoveCertificate!");
     fullScreen(false);
 }
 
