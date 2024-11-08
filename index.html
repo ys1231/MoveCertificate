@@ -90,18 +90,18 @@
         }
 
         .delete-button {
-            position: absolute;
-            right: 10px;
-            top: 50%;
-            transform: translateY(-50%);
-            display: none;
+            margin-left: auto; /* 按钮靠右 */
             background-color: rgba(253, 0, 0, 0.76);
             color: white;
             border: none;
             border-radius: 5px;
-            padding: 5px;
+            padding: 5px 10px; /* 增加按钮的内边距 */
+            cursor: pointer; /* 添加光标手型 */
+            transition: background-color 0.3s; /* 添加背景色过渡效果 */
         }
-
+        .delete-button:hover {
+            background-color: rgba(200, 0, 0, 0.8);
+        }
         #versionInfo {
             margin: 0;
             font-size: 14px;

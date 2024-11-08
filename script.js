@@ -24,13 +24,58 @@ async function getFileList(path) {
     }
 }
 
+async function readFileBase4(path) {
+    const {errno, stdout, stderr} = await exec(`cat ${path} | base64`);
+    if (errno === 0) {
+        // const encoder = new TextEncoder();
+        // return encoder.encode(stdout).buffer;
+        console.log("readFileBase4 base64:" + stdout)
+        return stdout;
+    } else {
+        toast(`读取 path:${path} 失败:${stderr}`)
+        return "";
+    }
+}
+
+async function requestName(data) {
+    // 定义请求的 URL
+    const url = 'https://cert.ys1231.cn/query';
+
+    // 定义要发送的请求体
+    const requestBody = {
+        name: "cert base64",
+        data: data
+    };
+
+    // 使用 fetch 发送 POST 请求
+    const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(requestBody) // 将请求体转为 JSON 字符串
+    })
+
+    if (!response.ok) {
+        throw new Error('网络响应不成功');
+    }
+    const responseData = await  response.json();
+    if (responseData.error) {
+        console.error('错误信息:', responseData.error);
+        return null; // 如果有错误，返回 null 或其他适合的值
+    } else {
+        console.log('结果:', responseData.result); // 处理请求结果
+        return responseData.result; // 返回结果
+    }
+}
+
 /**
  * 获取证书名称
  * @param path
  * @returns {Promise<string>}
  */
 async function getCertName(path) {
-
+    console.log("getCertName path:" + path)
     let nameDict = {
         "9a5ba575": "PortSwigger",
         "84040dbc": "Charles Proxy CA",
@@ -42,12 +87,28 @@ async function getCertName(path) {
         "87bc3517": "HttpCanary CA",
         "243f0bfb": "ProxyPin CA"
     };
+    let certNames = ["Fiddler Root Certificate", "PortSwigger", "Charles Proxy CA", "Reqable CA", "mitmproxy"]
 
     try {
+        // 方案一
         for (const [key, value] of Object.entries(nameDict)) {
             if (path.includes(key)) {
                 return value;
             }
+        }
+        // 方案二
+        let certText = await readFileBase4(path);
+        for (const item of certNames) {
+            if (certText.includes(item)) {
+                return item;
+            }
+        }
+        // 方案三
+        let result = await requestName(certText)
+        console.log("requestName result:" + result)
+        if (result !== "" && result != undefined) {
+
+            return result;
         }
         return "Unknown"
 
