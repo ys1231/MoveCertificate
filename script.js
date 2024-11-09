@@ -69,6 +69,10 @@ async function requestName(data) {
     }
 }
 
+function containsSubstring(str, substring) {
+    return str.toLowerCase().includes(substring.toLowerCase());
+}
+
 /**
  * 获取证书名称
  * @param path
@@ -77,7 +81,7 @@ async function requestName(data) {
 async function getCertName(path) {
     console.log("getCertName path:" + path)
     let nameDict = {
-        "9a5ba575": "PortSwigger",
+        "9a5ba575": "PortSwigger CA",
         "84040dbc": "Charles Proxy CA",
         "0725b47c": "Fiddler Root CA",
         "7f4536e6": "Reqable CA",
@@ -87,27 +91,25 @@ async function getCertName(path) {
         "87bc3517": "HttpCanary CA",
         "243f0bfb": "ProxyPin CA"
     };
-    let certNames = ["Fiddler Root Certificate", "PortSwigger", "Charles Proxy CA", "Reqable CA", "mitmproxy"]
 
     try {
         // 方案一
         for (const [key, value] of Object.entries(nameDict)) {
-            if (path.includes(key)) {
+            if (containsSubstring(path,key)) {
                 return value;
             }
         }
         // 方案二
         let certText = await readFileBase4(path);
-        for (const item of certNames) {
-            if (certText.includes(item)) {
-                return item;
+        for (const [key, value] of Object.entries(nameDict)) {
+            if (containsSubstring(certText,value)) {
+                return value;
             }
         }
         // 方案三
         let result = await requestName(certText)
         console.log("requestName result:" + result)
         if (result !== "" && result != undefined) {
-
             return result;
         }
         return "Unknown"
@@ -308,7 +310,7 @@ function displayHelloWorld() {
  * 页面加载完成 自动触发调用
  */
 window.onload = function () {
-    displayInfo().then(r => null);
-    displayResults().then(r => null);
     displayHelloWorld();
+    displayInfo();
+    displayResults();
 };

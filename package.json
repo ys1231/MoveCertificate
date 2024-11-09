@@ -7,7 +7,7 @@
     "build": "rm -rf ./webroot/* && parcel build index.html -d webroot && javascript-obfuscator webroot --output webroot --compact true",
     "obfuscate": "javascript-obfuscator webroot --output webroot --compact true",
     "push": "scp ./webroot/*  root@192.168.1.4:/data/adb/modules/MoveCertificate/webroot/",
-    "build_push": "rm -rf ./webroot/* && parcel build index.html -d webroot && javascript-obfuscator webroot --output webroot --compact true && scp ./webroot/*  root@192.168.2.10:/data/adb/modules/MoveCertificate/webroot/",
+    "build_push": "rm -rf ./webroot/* && parcel build index.html -d webroot && javascript-obfuscator webroot --output webroot --compact true && scp ./webroot/*  root@192.168.1.4:/data/adb/modules/MoveCertificate/webroot/",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "private": true,
