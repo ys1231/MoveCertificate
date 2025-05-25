@@ -176,6 +176,77 @@
             background-color: red;
             color: white;
         }
+
+        /* 深色主题 */
+        @media (prefers-color-scheme: dark) {
+
+            body,
+            html {
+                background-color: #121212;
+                color: #e0e0e0;
+            }
+
+            .content {
+                background-color: #1e1e1e;
+                box-shadow: 0 0 10px rgba(255, 255, 255, 0.05);
+            }
+
+            h1 {
+                color: #ffffff;
+            }
+
+            .groupbox {
+                border: 1px solid #444;
+                background-color: #2a2a2a;
+            }
+
+            .groupbox-title {
+                background-color: #1e1e1e;
+                color: #e0e0e0;
+            }
+
+            li {
+                background-color: #2a2a2a;
+                color: #f0f0f0;
+            }
+
+            .status-dot.green {
+                background-color: #4caf50
+            }
+
+            .status-dot.gray {
+                background-color: #888
+            }
+
+            .delete-button {
+                background-color: rgba(255, 80, 80, 0.8);
+                color: #fff;
+            }
+
+            .delete-button:hover {
+                background-color: rgba(255, 50, 50, 0.9);
+            }
+
+            .modal {
+                background-color: rgba(0, 0, 0, 0.8);
+            }
+
+            .modal-content {
+                background-color: #1e1e1e;
+                border: 1px solid #444;
+                color: #f0f0f0;
+            }
+
+            .modal-footer .cancel-btn {
+                background-color: #444;
+                color: #ccc;
+            }
+
+            .modal-footer .confirm-btn {
+                background-color: #d32f2f;
+                color: #fff;
+            }
+        }
     </style>
 </head>
 <body>
