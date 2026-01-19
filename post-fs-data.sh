@@ -147,9 +147,9 @@ else
     print_log "current sdk version is $sdk_version_number"
     
     print_log "Backup $APEX_CONSCRYPT_DIR"
-    cp -f $APEX_CONSCRYPT_DIR/* $TMP_CERT_DIR
+    cp -u $APEX_CONSCRYPT_DIR/* $TMP_CERT_DIR
     print_log "Backup $USER_CERT_DIR"
-    cp -f $USER_CERT_DIR/* $TMP_CERT_DIR
+    cp -u $USER_CERT_DIR/* $TMP_CERT_DIR
     move_custom_cert
     fix_user_permissions
     fix_system_permissions14 $TMP_CERT_DIR
