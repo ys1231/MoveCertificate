@@ -17,39 +17,55 @@ sdk_version_number=$(expr "$sdk_version" + 0)
 LOG_PATH="$MODDIR/install.log"
 LOG_TAG="iyue"
 
-# Keep only one up-to-date log
+## Keep only one up-to-date log
 echo "[$LOG_TAG] Keep only one up-to-date log" >$LOG_PATH
-
 print_log() {
     echo "[$LOG_TAG] $@" >>$LOG_PATH
 }
 
+# PATH DIR
+## TMPDIR
+TMP_CERT_DIR=$MODDIR/certificates
+
+## Custom certificate directory
+CUSTOM_CERT_DIR=/data/local/tmp/cert
+
+## User certificate directory
+USER_CERT_DIR=/data/misc/user/0/cacerts-added
+
+## System certificate directory
+SYSTEM_CERT_DIR=/system/etc/security/cacerts
+
+## Apex conscrypt directory
+APEX_CONSCRYPT_DIR=/apex/com.android.conscrypt/cacerts
+
+
 move_custom_cert() {
-    if [ "$(ls -A /data/local/tmp/cert)" ]; then
-        cp -f /data/local/tmp/cert/* $MODDIR/certificates
-        cp -f /data/local/tmp/cert/* /data/misc/user/0/cacerts-added/
+    if [ "$(ls -A $CUSTOM_CERT_DIR)" ]; then
+        cp -f $CUSTOM_CERT_DIR/* $TMP_CERT_DIR
+        cp -f $CUSTOM_CERT_DIR/* $USER_CERT_DIR
     else
-        print_log "The directory '/data/local/tmp/cert' is empty."
+        print_log "The directory $CUSTOM_CERT_DIR is empty."
     fi
-    print_log "Install /data/local/tmp/cert status:$?"
+    print_log "Install $CUSTOM_CERT_DIR status:$?"
 }
 
 fix_user_permissions() {
     # "Fix permissions of the system certificate directory"
-    chown -R root:root /data/misc/user/0/cacerts-added/
-    chmod -R 666 /data/misc/user/0/cacerts-added/
-    chown system:system /data/misc/user/0/cacerts-added
-    chmod 755 /data/misc/user/0/cacerts-added
+    chown -R root:root $USER_CERT_DIR/
+    chmod -R 666 $USER_CERT_DIR/
+    chown system:system $USER_CERT_DIR
+    chmod 755 $USER_CERT_DIR
     print_log "fix user certificate permissions status:$?"
 }
 
 fix_system_permissions() {
-    chown root:root /system/etc/security/cacerts
-    chown -R root:root /system/etc/security/cacerts/
-    chmod -R 644 /system/etc/security/cacerts/
-    chmod 755 /system/etc/security/cacerts
-    chcon u:object_r:system_file:s0 /system/etc/security/cacerts/*
-    print_log "fix permissions /system/etc/security/cacerts status:$?"
+    chown root:root $SYSTEM_CERT_DIR/
+    chown -R root:root $SYSTEM_CERT_DIR/
+    chmod -R 644 $SYSTEM_CERT_DIR/
+    chmod 755 $SYSTEM_CERT_DIR/
+    chcon u:object_r:system_file:s0 $SYSTEM_CERT_DIR/*
+    print_log "fix permissions $SYSTEM_CERT_DIR status:$?"
 }
 
 fix_system_permissions14() {
@@ -62,7 +78,7 @@ fix_system_permissions14() {
 
 set_selinux_context(){
     [ "$(getenforce)" = "Enforcing" ] || return 0
-    default_selinux_context=u:object_r:system_file:s0
+    default_selinux_context=u:object_r:system_security_cacerts_file:s0
     selinux_context=$(ls -Zd $1 | awk '{print $1}')
 
     if [ -n "$selinux_context" ] && [ "$selinux_context" != "?" ]; then
@@ -76,7 +92,7 @@ compatible(){
     # compatible adguard or other
     # Hash 47ec1af8 is for "AdGuard Intermediate CA" intermediate.
     print_log "Compatible adguard"
-    cert_dir="$MODDIR/certificates"
+    cert_dir=$TMP_CERT_DIR
     print_log "Running compatibility cleanup for potentially conflicting certificates."
 
     # Remove by filename pattern (hash: 47ec1af8.*)
@@ -101,59 +117,60 @@ compatible(){
 if [ "$sdk_version_number" -le 33 ]; then
     print_log "start move cert !"
     print_log "current sdk version is $sdk_version_number"
-    print_log "Backup /system/etc/security/cacerts"
-    cp -u /system/etc/security/cacerts/* $MODDIR/certificates
-    print_log "Backup /data/misc/user/0/cacerts-added"
-    cp -u /data/misc/user/0/cacerts-added/* $MODDIR/certificates/
+    print_log "Backup $SYSTEM_CERT_DIR"
+    cp -u $SYSTEM_CERT_DIR/* $TMP_CERT_DIR
+    print_log "Backup $USER_CERT_DIR"
+    cp -u $USER_CERT_DIR/* $TMP_CERT_DIR
     # Android 13 or lower versions perform
     move_custom_cert
     fix_user_permissions
     compatible
-
-    selinux_context=$(ls -Zd /system/etc/security/cacerts | awk '{print $1}')
-    mount -t tmpfs tmpfs /system/etc/security/cacerts
-    print_log "mount /system/etc/security/cacerts status:$?"
+    selinux_context=$(ls -Zd $SYSTEM_CERT_DIR | awk '{print $1}')
+    mount -t tmpfs tmpfs $SYSTEM_CERT_DIR
+    print_log "mount $SYSTEM_CERT_DIR status:$?"
     
-    cp -f $MODDIR/certificates/* /system/etc/security/cacerts
-    print_log "Install /system/etc/security/cacerts status:$?"
+    cp -f $TMP_CERT_DIR/* $SYSTEM_CERT_DIR
+    
+    print_log "Install $SYSTEM_CERT_DIR status:$?"
     fix_system_permissions
     print_log "certificates installed"
     [ "$(getenforce)" = "Enforcing" ] || return 0
-    default_selinux_context=u:object_r:system_file:s0
+    default_selinux_context=u:object_r:system_security_cacerts_file:s0
     if [ -n "$selinux_context" ] && [ "$selinux_context" != "?" ]; then
-        chcon -R $selinux_context /system/etc/security/cacerts
+        chcon -R $selinux_context $SYSTEM_CERT_DIR
     else
-        chcon -R $default_selinux_context /system/etc/security/cacerts
+        chcon -R $default_selinux_context $SYSTEM_CERT_DIR
     fi
 else
 
     print_log "start move cert !"
     print_log "current sdk version is $sdk_version_number"
     
-    mount -t tmpfs tmpfs $MODDIR/certificates
-    print_log "mount $MODDIR/certificates status:$?"
-    print_log "Backup /apex/com.android.conscrypt/cacerts"
-    cp -u /apex/com.android.conscrypt/cacerts/* $MODDIR/certificates
-    print_log "Backup /data/misc/user/0/cacerts-added"
-    cp -u /data/misc/user/0/cacerts-added/* $MODDIR/certificates
+    print_log "Backup $APEX_CONSCRYPT_DIR"
+    cp -f $APEX_CONSCRYPT_DIR/* $TMP_CERT_DIR
+    print_log "Backup $USER_CERT_DIR"
+    cp -f $USER_CERT_DIR/* $TMP_CERT_DIR
     move_custom_cert
     fix_user_permissions
-    fix_system_permissions14 $MODDIR/certificates
+    fix_system_permissions14 $TMP_CERT_DIR
     compatible
-
+    
+    mount -t tmpfs tmpfs $SYSTEM_CERT_DIR
+    print_log "mount $SYSTEM_CERT_DIR status:$?"
+    cp -f $TMP_CERT_DIR/* $SYSTEM_CERT_DIR
     print_log "find system conscrypt directory"
     apex_dir=$(find /apex -type d -name "com.android.conscrypt@*")
     print_log "find conscrypt directory: $apex_dir"
 
-    set_selinux_context /apex/com.android.conscrypt/cacerts $MODDIR/certificates
+    set_selinux_context $APEX_CONSCRYPT_DIR $SYSTEM_CERT_DIR
     # These two directories are mapped to the same block
-    mount -o bind $MODDIR/certificates /apex/com.android.conscrypt/cacerts
-    print_log "mount bind $MODDIR/certificates /apex/com.android.conscrypt/cacerts status:$?"
-    mount -o bind $MODDIR/certificates $apex_dir/cacerts
+    mount -o bind $SYSTEM_CERT_DIR $APEX_CONSCRYPT_DIR
+    print_log "mount bind $SYSTEM_CERT_DIR $APEX_CONSCRYPT_DIR status:$?"
+    mount -o bind $SYSTEM_CERT_DIR $apex_dir/cacerts
+    print_log "mount bind $SYSTEM_CERT_DIR $apex_dir/cacerts status:$?"
     for pid in 1 $(pgrep zygote) $(pgrep zygote64); do
-            nsenter --mount=/proc/${pid}/ns/mnt -- mount --bind $MODDIR/certificates /apex/com.android.conscrypt/cacerts
-            nsenter --mount=/proc/${pid}/ns/mnt -- mount --bind $MODDIR/certificates $apex_dir/cacerts
+            nsenter --mount=/proc/${pid}/ns/mnt -- mount --rbind $SYSTEM_CERT_DIR $APEX_CONSCRYPT_DIR
+            nsenter --mount=/proc/${pid}/ns/mnt -- mount --rbind $SYSTEM_CERT_DIR $apex_dir/cacerts
     done
-    print_log "mount bind $MODDIR/certificates $apex_dir/cacerts status:$?"
     print_log "certificates installed"
 fi
