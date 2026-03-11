@@ -2,7 +2,7 @@
 
 [English](README.en.md) | [中文](README.md)
 
-Kullanıcı sertifikalarını sistem sertifikalarına taşımak için bir `Magisk/KernelSU/APatch` modülü. `Android 7-15` destekler.
+Kullanıcı sertifikalarını sistem sertifikalarına taşımak için bir `Magisk/KernelSU/APatch` modülü. `Android 7-16` destekler.
 Eğer telefonunuz resmi bir imaja sahipse, bu modüle ihtiyacınız olabilir. Kendi ROM'unuzu derliyorsanız, sertifikayı doğrudan içine ekleyebilir veya `remount` kullanarak manuel olarak taşıyabilirsiniz.
 
 # Kullanım

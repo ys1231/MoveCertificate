@@ -2,7 +2,7 @@
 
 [中文](README.md) | [Türkçe](README.tr.md)
 
-A `Magisk/KernelSU/APatch` module for moving user certificates to system certificates. Supports `Android 7-15`.
+A `Magisk/KernelSU/APatch` module for moving user certificates to system certificates. Supports `Android 7-16`.
 If your phone has an official image, you might need this module. If you compile your own ROM, you can either build it in or manually move it using `remount`.
 
 # Usage

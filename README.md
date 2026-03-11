@@ -2,7 +2,7 @@
 
 [English](README.en.md) | [Türkçe](README.tr.md)
 
-这是一个`Magisk/KernelSU/APatch`模块 用于移动用户证书到系统证书.支持`Android 7-15`
+这是一个`Magisk/KernelSU/APatch`模块 用于移动用户证书到系统证书.支持`Android 7-16`
 如果手机是官方镜像,可能就需要借助模块,如果是自己编译的直接内置或者`remount`手动移一下就行了.
 
 # 使用方法
