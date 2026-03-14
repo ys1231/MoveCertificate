@@ -1,5 +1,7 @@
+- docs(README): :memo: update docs
+---
 - feat(sh): :fire: #45 Compatible with AdGuard
-- 1. Compatible with AdGuard, Skip "AdGuard Intermediate CA"
+- Compatible with AdGuard, Skip "AdGuard Intermediate CA"
 ---
 - chore(UI): :tada: Adapt to dark mode
 ---
