@@ -1,4 +1,4 @@
-# [Move Certificate](https://github.com/ys1231/MoveCertificate)
+# [MoveCertificate](https://github.com/ys1231/MoveCertificate)
 
 [English](README.en.md) | [中文](README.md)
 
