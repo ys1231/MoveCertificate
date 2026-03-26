@@ -1,3 +1,6 @@
+- revert(sh): :rewind: #60 Rollback temporary directory
+- feat(sh): :sparkles: Reset certificate time
+---
 - docs(README): :memo: update docs
 ---
 - feat(sh): :fire: #45 Compatible with AdGuard

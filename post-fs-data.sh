@@ -65,6 +65,8 @@ fix_system_permissions() {
     chmod -R 644 $SYSTEM_CERT_DIR/
     chmod 755 $SYSTEM_CERT_DIR/
     chcon u:object_r:system_file:s0 $SYSTEM_CERT_DIR/*
+    touch -t 200901010800 $SYSTEM_CERT_DIR/*
+    touch -t 200901010800 $SYSTEM_CERT_DIR
     print_log "fix permissions $SYSTEM_CERT_DIR status:$?"
 }
 
@@ -73,6 +75,8 @@ fix_system_permissions14() {
     chown root:shell "$1"
     chmod -R 644 "$1"
     chmod 755 "$1"
+    touch -t 197001010800 "$1/*"
+    touch -t 197001010800 "$1"
     print_log "fix permissions: $?"
 }
 
@@ -155,22 +159,19 @@ else
     fix_system_permissions14 $TMP_CERT_DIR
     compatible
     
-    mount -t tmpfs tmpfs $SYSTEM_CERT_DIR
-    print_log "mount $SYSTEM_CERT_DIR status:$?"
-    cp -f $TMP_CERT_DIR/* $SYSTEM_CERT_DIR
     print_log "find system conscrypt directory"
     apex_dir=$(find /apex -type d -name "com.android.conscrypt@*")
     print_log "find conscrypt directory: $apex_dir"
 
-    set_selinux_context $APEX_CONSCRYPT_DIR $SYSTEM_CERT_DIR
+    set_selinux_context $APEX_CONSCRYPT_DIR $TMP_CERT_DIR
     # These two directories are mapped to the same block
-    mount -o bind $SYSTEM_CERT_DIR $APEX_CONSCRYPT_DIR
-    print_log "mount bind $SYSTEM_CERT_DIR $APEX_CONSCRYPT_DIR status:$?"
-    mount -o bind $SYSTEM_CERT_DIR $apex_dir/cacerts
-    print_log "mount bind $SYSTEM_CERT_DIR $apex_dir/cacerts status:$?"
+    mount -o bind $TMP_CERT_DIR $APEX_CONSCRYPT_DIR
+    print_log "mount bind $TMP_CERT_DIR $APEX_CONSCRYPT_DIR status:$?"
+    mount -o bind $TMP_CERT_DIR $apex_dir/cacerts
+    print_log "mount bind $TMP_CERT_DIR $apex_dir/cacerts status:$?"
     for pid in 1 $(pgrep zygote) $(pgrep zygote64); do
-            nsenter --mount=/proc/${pid}/ns/mnt -- mount --rbind $SYSTEM_CERT_DIR $APEX_CONSCRYPT_DIR
-            nsenter --mount=/proc/${pid}/ns/mnt -- mount --rbind $SYSTEM_CERT_DIR $apex_dir/cacerts
+            nsenter --mount=/proc/${pid}/ns/mnt -- mount --rbind $TMP_CERT_DIR $APEX_CONSCRYPT_DIR
+            nsenter --mount=/proc/${pid}/ns/mnt -- mount --rbind $TMP_CERT_DIR $apex_dir/cacerts
     done
     print_log "certificates installed"
 fi
