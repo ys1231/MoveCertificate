@@ -75,7 +75,7 @@ fix_system_permissions14() {
     chown root:shell "$1"
     chmod -R 644 "$1"
     chmod 755 "$1"
-    touch -t 197001010800 "$1/*"
+    touch -t 197001010800 "$1"/*
     touch -t 197001010800 "$1"
     print_log "fix permissions: $?"
 }
