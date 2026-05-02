@@ -1,0 +1,24 @@
+{
+  "name": "movecertificate",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "parcel serve index.html --dist-dir ../webroot",
+    "build": "rm -rf ../webroot dist && mkdir -p ../webroot && parcel build index.html && cp -r dist/* ../webroot/ && rm -rf dist && for f in ../webroot/*.js; do javascript-obfuscator \"$f\" --output \"$f\" --compact true; done",
+    "obfuscate": "for f in ../webroot/*.js; do javascript-obfuscator \"$f\" --output \"$f\" --compact true; done",
+    "push": "scp ../webroot/*  root@192.168.1.4:/data/adb/modules/MoveCertificate/webroot/",
+    "build_push": "rm -rf ../webroot dist && mkdir -p ../webroot && parcel build index.html && cp -r dist/* ../webroot/ && rm -rf dist && for f in ../webroot/*.js; do javascript-obfuscator \"$f\" --output \"$f\" --compact true; done && scp ../webroot/*  root@192.168.1.4:/data/adb/modules/MoveCertificate/webroot/",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "private": true,
+  "dependencies": {
+    "kernelsu": "^3.0.0"
+  },
+  "devDependencies": {
+    "javascript-obfuscator": "^4.1.1",
+    "parcel": "^2.16.4"
+  },
+  "keywords": [],
+  "author": "iyue",
+  "license": "ISC",
+  "description": "The MoveCertificate web page is used to display and delete certificates."
+}

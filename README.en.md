@@ -42,9 +42,18 @@ mv cacert.der 02e06844.0
 # Or directly extract the certificate from the user directory after phone installation, no need to worry about calculation and format conversion.
 ```
 
+![20221109212126575](README.assets/20221109212126575.png)
+
 4. Manually rename the certificate file (before conversion) to `02e06844.0`, or coexist as `02e06844.1`
 5. `adb push 02e06844.0  /data/local/tmp/cert/`
 6. After pushing the certificate to the phone, restart to take effect.
+
+## MoveCertificate web
+
+- A web page for the MoveCertificate module to display the list of installed certificates.
+- It can also view detailed information about certificates installed by the module.
+- Long press to delete installed certificates.
+
 
 # Test Results
 ![2024-02-19_01.27.27](README.assets/2024-02-19_01.27.27.png)

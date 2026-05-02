@@ -1,3 +1,12 @@
+- refactor(web): :recycle: Add GitHub Actions CI workflow and build system
+- Add .github/workflows/main.yaml for automated builds
+- Add buildzip.sh packaging script with parameter support
+- Add webdev/ directory with web UI components
+- Update .gitignore for build artifacts
+- Update documentation (README.md, README.en.md, README.tr.md)
+- Update changelog.md
+- refactor(web): :recycle: Merge webdev
+---
 - revert(sh): :rewind: #60 Rollback temporary directory
 - feat(sh): :sparkles: Reset certificate time
 ---

@@ -42,9 +42,18 @@ mv cacert.der 02e06844.0
 # Veya telefon kurulumundan sonra doğrudan kullanıcı dizininden sertifikayı çıkarabilirsiniz, hesaplama ve format dönüşümü endişesine gerek yok.
 ```
 
+![20221109212126575](README.assets/20221109212126575.png)
+
 4. Sertifika dosyasını (dönüştürmeden önce) manuel olarak `02e06844.0` olarak yeniden adlandırın veya `02e06844.1` olarak birlikte var olun
 5. `adb push 02e06844.0  /data/local/tmp/cert/`
 6. Sertifikayı telefona gönderdikten sonra, etkili olması için yeniden başlatın.
+
+## MoveCertificate web
+
+- Kurulu sertifikaların listesini görüntülemek için MoveCertificate modülüne ait bir web sayfası.
+- Modül tarafından kurulan sertifikaların ayrıntılı bilgilerini de görüntüleyebilir.
+- Sertifikaları silmek için uzun basın.
+
 
 # Test Sonuçları
 ![2024-02-19_01.27.27](README.assets/2024-02-19_01.27.27.png)

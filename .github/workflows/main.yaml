@@ -1,0 +1,65 @@
+# .github/workflows/main.yml
+# 工作流名称
+name: Build and Package
+
+# 触发事件
+on:
+  push:
+    # 触发分支
+    branches: [ main ]
+  release:
+    types: [published]
+
+jobs:
+  # 任务名称
+  build:
+    # 运行环境
+    runs-on: ubuntu-latest
+    # 权限配置
+    permissions:
+      contents: write
+    # 任务步骤
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: webdev/package-lock.json
+      
+      - name: Clear parcel cache
+        run: rm -rf webdev/.parcel-cache
+      
+      - name: Install dependencies
+        run: cd webdev && npm install
+      
+      - name: Build web UI
+        run: cd webdev && npm run build
+      
+      - name: Package module
+        run: |
+          chmod +x buildzip.sh
+          ./buildzip.sh
+      
+      - name: Get version
+        id: get_version
+        run: |
+          VERSION=$(grep -o '"version": *"[^"]*"' update.json | sed 's/"version": *"\([^"]*\)"/\1/')
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+      
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: MoveCertificate-${{ steps.get_version.outputs.VERSION }}
+          path: MoveCertificate-*.zip
+          retention-days: 30
+      
+      - name: Upload to Release
+        if: github.event_name == 'release'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: MoveCertificate-*.zip
+          token: ${{ secrets.GITHUB_TOKEN }}
+        

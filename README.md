@@ -50,6 +50,13 @@ mv cacert.der 02e06844.0
 6. `adb push 02e06844.0  /data/local/tmp/cert/`
 7. 证书推到手机后,重启即可生效，突然发现得保留这种场景。
 
+## MoveCertificate web
+
+- 这是一个 web 网页用于 MoveCertificate 模块显示已安装的证书列表。
+- 同时也可以查看模块安装证书的详细信息。
+- 以及长按可以删除已安装的证书。
+
+
 # 使用实测
 ![2024-02-19_01.27.27](README.assets/2024-02-19_01.27.27.png)
 
