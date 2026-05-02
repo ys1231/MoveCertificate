@@ -20,12 +20,12 @@ jobs:
       contents: write
     # 任务步骤
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
           cache-dependency-path: webdev/package-lock.json
       
@@ -50,7 +50,7 @@ jobs:
           echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
       
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: MoveCertificate-${{ steps.get_version.outputs.VERSION }}
           path: MoveCertificate-*.zip
@@ -58,7 +58,7 @@ jobs:
       
       - name: Upload to Release
         if: github.event_name == 'release'
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           files: MoveCertificate-*.zip
           token: ${{ secrets.GITHUB_TOKEN }}
