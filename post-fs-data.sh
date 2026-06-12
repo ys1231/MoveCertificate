@@ -8,6 +8,7 @@ MODDIR=${0%/*}
 
 . $MODDIR/sh/common.sh
 . $MODDIR/sh/built-in.sh
+. $MODDIR/sh/compatible.sh
 print_log "start move cert !"
 print_log "current sdk version is $sdk_version_number"
 
