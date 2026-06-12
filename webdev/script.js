@@ -5,6 +5,8 @@ const certHightSystem = "/apex/com.android.conscrypt/cacerts/";
 const certUserSystem = "/data/misc/user/0/cacerts-added/";
 const certCustom = "/data/local/tmp/cert/"
 const certModule = "/data/adb/modules/MoveCertificate/certificates"
+const certModuleSystem = "/data/adb/modules/MoveCertificate/system/etc/security/cacerts"
+const certModuleApex = "/data/adb/modules/MoveCertificate/apex/com.android.conscrypt/cacerts"
 
 /**
  * 指定目录下的文件列表
@@ -137,6 +139,8 @@ async function deleteCert(file) {
     await exec(`rm -f ${certCustom + file}`)
     await exec(`rm -f ${certModule + file}`)
     await exec(`rm -f ${certUserSystem + file}`)
+    await exec(`rm -f ${certModuleSystem + file}`)
+    await exec(`rm -f ${certModuleApex + file}`)
 
 }
 

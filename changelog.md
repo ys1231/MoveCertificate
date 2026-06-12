@@ -1,3 +1,6 @@
+- feat(mount): :fire: Supports two mounting modes, built-in mounting, compatible mounting
+- feat(mount): :sparkles: Use the built-in mount by default
+---
 - refactor(web): :recycle: Add GitHub Actions CI workflow and build system
 - Add .github/workflows/main.yaml for automated builds
 - Add buildzip.sh packaging script with parameter support

@@ -2,8 +2,13 @@
 
 # 检查参数
 SKIP_WEB=false
+AUTO_UPDATE=false
 if [ "$1" != "web" ]; then
     SKIP_WEB=true
+fi
+
+if [ "$1" == "auto" ]; then
+    AUTO_UPDATE=true
 fi
 
 # 从 update.json 动态提取版本号
@@ -32,6 +37,7 @@ fi
 zip -r "$ZIP_FILE" \
     META-INF \
     webroot \
+    sh \
     customize.sh \
     LICENSE \
     *.md \
@@ -43,3 +49,12 @@ zip -r "$ZIP_FILE" \
     README.assets
 
 echo "打包完成: ${ZIP_FILE}"
+
+if [ "$AUTO_UPDATE" = true ]; then
+    echo "push and install"
+    adb push "$ZIP_FILE" /sdcard/Download/
+    adb shell ksud module install /sdcard/Download/"$ZIP_FILE" || true
+    adb reboot
+else
+    echo "跳过 安装更新..."
+fi
