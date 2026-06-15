@@ -60,7 +60,7 @@ init_high_version(){
 
     # These two directories are mapped to the same block
     mount -o bind $TEMP_DIR $APEX_CONSCRYPT_DIR
-    print_log "mount bind $MODULE_CERT_DIR $APEX_CONSCRYPT_DIR status:$?"
+    print_log "mount bind $TEMP_DIR $APEX_CONSCRYPT_DIR status:$?"
     mount -o bind $TEMP_DIR $apex_dir/cacerts
     print_log "mount bind $TEMP_DIR $apex_dir/cacerts status:$?"
     for pid in 1 $(pgrep zygote) $(pgrep zygote64); do
