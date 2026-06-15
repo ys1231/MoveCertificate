@@ -1,13 +1,18 @@
 #!/bin/bash
 
 # 检查参数
-SKIP_WEB=false
+BUILD_WEB=false
 AUTO_UPDATE=false
 if [ "$1" != "web" ]; then
-    SKIP_WEB=true
+    BUILD_WEB=true
 fi
 
 if [ "$1" == "auto" ]; then
+    AUTO_UPDATE=true
+fi
+
+if [ "$1" == "all" ]; then
+    BUILD_WEB=true
     AUTO_UPDATE=true
 fi
 
@@ -26,7 +31,7 @@ if [ -f "$ZIP_FILE" ]; then
 fi
 
 # 编译 webroot（仅当参数为 web 时）
-if [ "$SKIP_WEB" = false ]; then
+if [ "$BUILD_WEB" = false ]; then
     echo "正在编译 webroot..."
     cd webdev && npm install && npm run build && cd ..
 else
