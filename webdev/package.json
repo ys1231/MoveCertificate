@@ -2,20 +2,21 @@
   "name": "movecertificate",
   "version": "1.0.0",
   "scripts": {
-    "start": "parcel serve index.html --dist-dir ../webroot",
-    "build": "rm -rf ../webroot dist && mkdir -p ../webroot && parcel build index.html && cp -r dist/* ../webroot/ && rm -rf dist && for f in ../webroot/*.js; do javascript-obfuscator \"$f\" --output \"$f\" --compact true; done",
-    "obfuscate": "for f in ../webroot/*.js; do javascript-obfuscator \"$f\" --output \"$f\" --compact true; done",
-    "push": "scp ../webroot/*  root@192.168.1.4:/data/adb/modules/MoveCertificate/webroot/",
-    "build_push": "rm -rf ../webroot dist && mkdir -p ../webroot && parcel build index.html && cp -r dist/* ../webroot/ && rm -rf dist && for f in ../webroot/*.js; do javascript-obfuscator \"$f\" --output \"$f\" --compact true; done && scp ../webroot/*  root@192.168.1.4:/data/adb/modules/MoveCertificate/webroot/",
+    "start": "node build.mjs --serve",
+    "build": "rm -rf ../webroot && mkdir -p ../webroot && node build.mjs",
+    "typecheck": "tsc --noEmit",
+    "build_push": "rm -rf ../webroot && mkdir -p ../webroot && node build.mjs && scp ../webroot/*  root@192.168.1.10:/data/adb/modules/MoveCertificate/webroot/ && echo '✅ 构建并推送完成'",
+    "push": "scp ../webroot/*  root@192.168.1.10:/data/adb/modules/MoveCertificate/webroot/",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "private": true,
   "dependencies": {
-    "kernelsu": "^3.0.0"
+    "kernelsu": "^3.0.2"
   },
   "devDependencies": {
-    "javascript-obfuscator": "^4.1.1",
-    "parcel": "^2.16.4"
+    "esbuild": "^0.28.1",
+    "javascript-obfuscator": "^5.4.3",
+    "typescript": "^6.0.3"
   },
   "keywords": [],
   "author": "iyue",

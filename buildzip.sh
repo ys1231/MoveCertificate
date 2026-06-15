@@ -1,10 +1,10 @@
 #!/bin/bash
 
 # 检查参数
-BUILD_WEB=false
+BUILD_WEB=true
 AUTO_UPDATE=false
-if [ "$1" != "web" ]; then
-    BUILD_WEB=true
+if [ "$1" == "sweb" ]; then
+    BUILD_WEB=false
 fi
 
 if [ "$1" == "auto" ]; then
@@ -30,8 +30,8 @@ if [ -f "$ZIP_FILE" ]; then
     rm "$ZIP_FILE"
 fi
 
-# 编译 webroot（仅当参数为 web 时）
-if [ "$BUILD_WEB" = false ]; then
+# 编译 webroot（当参数为 sweb 时跳过）
+if [ "$BUILD_WEB" = true ]; then
     echo "正在编译 webroot..."
     cd webdev && npm install && npm run build && cd ..
 else
@@ -59,6 +59,7 @@ if [ "$AUTO_UPDATE" = true ]; then
     echo "push and install"
     adb push "$ZIP_FILE" /sdcard/Download/
     adb shell ksud module install /sdcard/Download/"$ZIP_FILE" || true
+    adb shell "su -c apd module install /sdcard/Download/$ZIP_FILE" || true
     adb reboot
 else
     echo "跳过 安装更新..."

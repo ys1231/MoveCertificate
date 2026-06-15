@@ -12,13 +12,23 @@ MODDIR=${0%/*}
 print_log "start move cert !"
 print_log "current sdk version is $sdk_version_number"
 
+# 读取模式配置
+read_mode_config
+print_log "current mode is $CURRENT_MODE"
+
 # Android version <= 13 execute
 if [ "$sdk_version_number" -le 33 ]; then
-    # init_low_version
-    init_low_builtin_method
+    if [ "$CURRENT_MODE" = "builtin" ]; then
+        init_low_builtin_method
+    else
+        init_low_version
+    fi
 else
-    # init_high_version
-    init_high_builtin_method
+    if [ "$CURRENT_MODE" = "builtin" ]; then
+        init_high_builtin_method
+    else
+        init_high_version
+    fi
 fi
 
 print_log "certificates installed"

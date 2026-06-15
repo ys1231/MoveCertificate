@@ -4,283 +4,136 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>MoveCertificate</title>
-    <style>
-        html, body {
-            height: 100%;
-            margin: 0;
-            padding: 0;
-            font-family: Arial, sans-serif;
-            line-height: 1.6;
-            background-color: #f0f0f0;
-        }
-
-        .container {
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-            box-sizing: border-box;
-        }
-
-        .content {
-            flex: 1;
-            background-color: #ffffff;
-            padding: 20px;
-            border-radius: 5px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            overflow-y: auto;
-        }
-
-        h1 {
-            text-align: left;
-            color: #333;
-            margin-bottom: 20px;
-        }
-
-        .groupbox {
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            padding: 15px;
-            margin-top: 20px;
-            position: relative;
-        }
-
-        .groupbox-title {
-            position: absolute;
-            top: -10px;
-            left: 10px;
-            background-color: #ffffff;
-            padding: 0 5px;
-            font-weight: bold;
-            color: #333;
-        }
-
-        ul {
-            list-style-type: none;
-            padding: 0;
-            margin: 10px 0 0 0;
-        }
-
-        li {
-            display: flex;
-            align-items: center;
-            background-color: #f9f9f9;
-            margin-bottom: 5px;
-            padding: 10px;
-            border-radius: 3px;
-            position: relative;
-        }
-
-        li:last-child {
-            margin-bottom: 0;
-        }
-
-        .status-dot {
-            width: 15px;
-            height: 15px;
-            border-radius: 50%;
-            margin-right: 10px;
-        }
-
-        .status-dot.green {
-            background-color: green;
-        }
-
-        .status-dot.gray {
-            background-color: gray;
-        }
-
-        .delete-button {
-            margin-left: auto; /* 按钮靠右 */
-            background-color: rgba(253, 0, 0, 0.76);
-            color: white;
-            border: none;
-            border-radius: 5px;
-            padding: 5px 10px; /* 增加按钮的内边距 */
-            cursor: pointer; /* 添加光标手型 */
-            transition: background-color 0.3s; /* 添加背景色过渡效果 */
-        }
-        .delete-button:hover {
-            background-color: rgba(200, 0, 0, 0.8);
-        }
-        #versionInfo {
-            margin: 0;
-            font-size: 14px;
-            word-wrap: break-word; /* 强制长单词或URL进行换行 */
-            word-break: break-all; /* 非CJK文本内的单词短横线换行 */
-            white-space: pre-wrap; /* 保留空白符序列，但自动换行 */
-        }
-
-        #logger {
-            margin: 0;
-            font-size: 14px;
-            word-wrap: break-word; /* 强制长单词或URL进行换行 */
-            word-break: break-all; /* 非CJK文本内的单词短横线换行 */
-            white-space: pre-wrap; /* 保留空白符序列，但自动换行 */
-        }
-
-        /* Modal styles */
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            background-color: rgb(0, 0, 0);
-            background-color: rgba(0, 0, 0, 0.4);
-            padding-top: 60px;
-        }
-
-        .modal-content {
-            background-color: #fefefe;
-            margin: 5% auto;
-            padding: 20px;
-            border: 1px solid #888;
-            width: 80%;
-            max-width: 300px;
-            border-radius: 10px;
-        }
-
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .modal-header h2 {
-            margin: 0;
-        }
-
-        .modal-footer {
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-        }
-
-        .modal-footer button {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        .modal-footer .cancel-btn {
-            background-color: #ccc;
-            color: #333;
-        }
-
-        .modal-footer .confirm-btn {
-            background-color: red;
-            color: white;
-        }
-
-        /* 深色主题 */
-        @media (prefers-color-scheme: dark) {
-
-            body,
-            html {
-                background-color: #121212;
-                color: #e0e0e0;
-            }
-
-            .content {
-                background-color: #1e1e1e;
-                box-shadow: 0 0 10px rgba(255, 255, 255, 0.05);
-            }
-
-            h1 {
-                color: #ffffff;
-            }
-
-            .groupbox {
-                border: 1px solid #444;
-                background-color: #2a2a2a;
-            }
-
-            .groupbox-title {
-                background-color: #1e1e1e;
-                color: #e0e0e0;
-            }
-
-            li {
-                background-color: #2a2a2a;
-                color: #f0f0f0;
-            }
-
-            .status-dot.green {
-                background-color: #4caf50
-            }
-
-            .status-dot.gray {
-                background-color: #888
-            }
-
-            .delete-button {
-                background-color: rgba(255, 80, 80, 0.8);
-                color: #fff;
-            }
-
-            .delete-button:hover {
-                background-color: rgba(255, 50, 50, 0.9);
-            }
-
-            .modal {
-                background-color: rgba(0, 0, 0, 0.8);
-            }
-
-            .modal-content {
-                background-color: #1e1e1e;
-                border: 1px solid #444;
-                color: #f0f0f0;
-            }
-
-            .modal-footer .cancel-btn {
-                background-color: #444;
-                color: #ccc;
-            }
-
-            .modal-footer .confirm-btn {
-                background-color: #d32f2f;
-                color: #fff;
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="styles/main.css">
 </head>
 <body>
+
+<!-- 整个应用的容器 -->
 <div class="container">
-    <div class="content">
-        <h1>MoveCertificate</h1>
-        <div class="groupbox">
-            <span class="groupbox-title">模块信息</span>
-            <p id="versionInfo">正在加载版本信息...</p>
-        </div>
-        <div class="groupbox">
-            <span class="groupbox-title">证书列表</span>
-            <ul id="certificateList"></ul>
-        </div>
-        <div class="groupbox">
-            <span class="groupbox-title">安装日志</span>
-            <p id="logger">正在加载版本信息...</p>
-        </div>
-    </div>
+
+    <!-- 顶部标题栏 -->
+    <header class="page-header">
+        <h1 data-i18n="appTitle">MoveCertificate</h1>
+    </header>
+
+    <!-- 中间内容区：三个 Tab 页面的容器 -->
+    <main class="tab-content">
+
+        <!-- Tab 1：证书管理（默认显示） -->
+        <section class="tab-page active" id="tab-certs">
+            <div class="groupbox">
+                <span class="groupbox-title" data-i18n="moduleInfo">模块信息</span>
+                <p id="versionInfo">正在加载…</p>
+            </div>
+            <div class="groupbox">
+                <span class="groupbox-title" data-i18n="certList">证书列表</span>
+                <ul id="certificateList"></ul>
+            </div>
+            <button class="refresh-btn" id="refreshCertsBtn">🔄 刷新证书列表</button>
+        </section>
+
+        <!-- Tab 2：模式配置 -->
+        <section class="tab-page" id="tab-mode">
+            <div id="modeConfig"></div>
+        </section>
+
+        <!-- Tab 3：运行日志（懒加载） -->
+        <section class="tab-page" id="tab-log">
+            <div class="groupbox">
+                <span class="groupbox-title" data-i18n="runtimeLog">运行日志</span>
+                <p id="logContent" data-i18n="logPlaceholder">点击下方刷新按钮加载日志…</p>
+            </div>
+            <button class="refresh-btn" id="refreshLogBtn">🔄 刷新日志</button>
+        </section>
+
+        <!-- Tab 4：设置 -->
+        <section class="tab-page" id="tab-settings">
+            <div class="groupbox">
+                <span class="groupbox-title" data-i18n="languageSettings">语言设置</span>
+                <div class="custom-select" id="langSelectWrap">
+                    <button class="custom-select-btn" id="langSelectBtn">
+                        <span id="langSelectedText">中文</span>
+                    </button>
+                    <div class="custom-select-dropdown">
+                        <button class="custom-select-option" data-lang="zh-CN">中文</button>
+                        <button class="custom-select-option" data-lang="en">English</button>
+                        <button class="custom-select-option" data-lang="tr">Türkçe</button>
+                    </div>
+                </div>
+            </div>
+            <div class="groupbox">
+                <span class="groupbox-title" data-i18n="themeSettings">主题设置</span>
+                <div class="theme-toggle" id="themeToggle">
+                    <button class="theme-btn" data-theme="dark" data-i18n="themeDark">深色</button>
+                    <button class="theme-btn" data-theme="auto" data-i18n="themeAuto">跟随系统</button>
+                    <button class="theme-btn" data-theme="light" data-i18n="themeLight">浅色</button>
+                </div>
+            </div>
+            <div class="groupbox">
+                <span class="groupbox-title" data-i18n="aboutSection">关于</span>
+                <a href="https://github.com/ys1231/MoveCertificate" target="_blank" rel="noopener" class="github-link">
+                    <svg class="github-link-icon" viewBox="0 0 16 16" width="18" height="18"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+                    <span>ys1231/MoveCertificate</span>
+                    <span class="github-link-arrow">↗</span>
+                </a>
+                <div class="contributors-section">
+                    <span class="contributors-label" data-i18n="contributorsTitle">贡献者</span>
+                    <div class="contributors-list">
+                        <a href="https://github.com/ys1231" target="_blank" rel="noopener" class="contributor-item">
+                            <img src="https://avatars.githubusercontent.com/u/22706022?v=4" alt="ys1231" class="contributor-avatar">
+                            <span class="contributor-name">ys1231</span>
+                        </a>
+                        <a href="https://github.com/SafaSafari" target="_blank" rel="noopener" class="contributor-item">
+                            <img src="https://avatars.githubusercontent.com/u/29104726?v=4" alt="SafaSafari" class="contributor-avatar">
+                            <span class="contributor-name">SafaSafari</span>
+                        </a>
+                        <a href="https://github.com/fr0stb1rd" target="_blank" rel="noopener" class="contributor-item">
+                            <img src="https://avatars.githubusercontent.com/u/141355346?v=4" alt="fr0stb1rd" class="contributor-avatar">
+                            <span class="contributor-name">fr0stb1rd</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- 底部标签栏 -->
+    <nav class="tab-bar">
+        <button class="tab-item active" data-tab="certs">
+            <span class="tab-icon">📋</span>
+            <span class="tab-label" data-i18n="certsTab">证书管理</span>
+        </button>
+        <button class="tab-item" data-tab="mode">
+            <span class="tab-icon">⚙️</span>
+            <span class="tab-label" data-i18n="modeTab">模式配置</span>
+        </button>
+        <button class="tab-item" data-tab="log">
+            <span class="tab-icon">📄</span>
+            <span class="tab-label" data-i18n="logTab">运行日志</span>
+        </button>
+        <button class="tab-item" data-tab="settings">
+            <span class="tab-icon">🛠</span>
+            <span class="tab-label" data-i18n="setTab">设置</span>
+        </button>
+    </nav>
+
 </div>
 
+<!-- 删除确认弹窗 -->
 <div id="deleteModal" class="modal">
     <div class="modal-content">
         <div class="modal-header">
-            <h2>此操作不可逆</h2>
+            <h2 data-i18n="modalTitle">此操作不可逆</h2>
         </div>
-        <p id="confirmMessage">确认要删除这个证书吗？</p>
+        <p id="confirmMessage" data-i18n="confirmDeleteMsg">确认要删除这个证书吗？</p>
         <div class="modal-footer">
-            <button class="cancel-btn" id="cancelDelete">取消</button>
-            <button class="confirm-btn" id="confirmDelete">确认</button>
+            <button class="cancel-btn" id="cancelDelete" data-i18n="cancel">取消</button>
+            <button class="confirm-btn" id="confirmDelete" data-i18n="confirm">确认</button>
         </div>
     </div>
 </div>
 
-<script src="script.js" type="module"></script>
+<script src="src/main.ts" type="module"></script>
 </body>
 </html>

@@ -16,6 +16,47 @@ print_log() {
     echo "[$LOG_TAG] $@" >>$LOG_PATH
 }
 
+# ==================== 模式配置读取 ====================
+# 配置文件路径：$MODDIR/mode.conf
+# 格式：mode=compatible 或 mode=builtin
+# 默认值：compatible（向后兼容）
+CONFIG_FILE="$MODDIR/mode.conf"
+
+CURRENT_MODE="compatible"
+
+read_mode_config() {
+    if [ ! -f "$CONFIG_FILE" ]; then
+        print_log "Config file $CONFIG_FILE not found, using default mode: compatible"
+        CURRENT_MODE="compatible"
+        return 0
+    fi
+
+    # 读取第一行非空内容作为模式配置
+    local raw
+    raw=$(grep -m1 '^[[:space:]]*mode=' "$CONFIG_FILE" 2>/dev/null)
+
+    if [ -z "$raw" ]; then
+        print_log "Config file $CONFIG_FILE has no valid 'mode=' entry, using default: compatible"
+        CURRENT_MODE="compatible"
+        return 0
+    fi
+
+    # 提取 = 号右边的值，移除首尾空白，转为小写
+    local mode_val
+    mode_val=$(echo "$raw" | sed 's/^[[:space:]]*mode[[:space:]]*=[[:space:]]*//;s/[[:space:]]*$//' | tr '[:upper:]' '[:lower:]')
+
+    case "$mode_val" in
+        compatible|builtin)
+            CURRENT_MODE="$mode_val"
+            print_log "Read mode config: $CURRENT_MODE"
+            ;;
+        *)
+            print_log "Unknown mode '$mode_val' in $CONFIG_FILE, falling back to default: compatible"
+            CURRENT_MODE="compatible"
+            ;;
+    esac
+}
+
 # PATH DIR
 ## MOBULE DIR
 MODULE_CERT_DIR=$MODDIR/certificates

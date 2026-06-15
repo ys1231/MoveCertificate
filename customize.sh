@@ -32,15 +32,22 @@ on_install() {
   if [ -f "$D_TMP_CERT" ]; then
     ui_print "- ${D_TMP_CERT} found"
   else
-    ui_print "- create ${D_TMP_CERT}"
+    # ui_print "- create ${D_TMP_CERT}"
     mkdir -p -m 777 "$D_TMP_CERT"
   fi
   # ui_print "- mkdir $MODPATH/certificates"
-  ui_print "- mkdir $F_TARGETDIR"
+  # ui_print "- mkdir $F_TARGETDIR"
   mkdir -p -m 755 "$F_TARGETDIR"
   mkdir -p -m 755 "$APEX_CONSCRYPT_DIR"
   mkdir -p -m 755 "$D_CERTIFICATE"
   mkdir -p -m 755 /data/misc/user/0/cacerts-added
+
+  # Create default mode config
+  MODE_CONF="$MODPATH/mode.conf"
+  if [ ! -f "$MODE_CONF" ]; then
+    echo "mode=compatible" > "$MODE_CONF"
+    ui_print "- Created default mode.conf (compatible mode)"
+  fi
 }
 
 # You can add more functions to assist your custom script code

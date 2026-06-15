@@ -1,0 +1,29 @@
+{
+    "compilerOptions": {
+        // 目标：Android WebView Chromium 90+
+        "target": "ES2020",
+        "module": "ESNext",
+        "moduleResolution": "bundler",
+        "lib": ["ES2020", "DOM", "DOM.Iterable"],
+
+        // 严格模式
+        "strict": true,
+        "noUncheckedIndexedAccess": true,
+        "noImplicitReturns": true,
+        "noFallthroughCasesInSwitch": true,
+        "forceConsistentCasingInFileNames": true,
+
+        // 模块
+        "esModuleInterop": true,
+        "allowSyntheticDefaultImports": true,
+        "isolatedModules": true,
+
+        // 输出（只做类型检查，esbuild 负责编译）
+        "noEmit": true,
+
+        // 跳过库检查（npm 包的类型可能有小问题）
+        "skipLibCheck": true
+    },
+    "include": ["src/**/*.ts"],
+    "exclude": ["node_modules", "dist", "../webroot"]
+}
