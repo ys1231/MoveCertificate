@@ -1,5 +1,10 @@
+- feat(mount): :sparkles: 默认使用兼容的挂载方式
+- feat(web): :fire: 新增模式切换, 更新优化 web 数据展示
+- feat(mount): :fire: 支持两种挂载模式，内置模式借助 meta 完成，兼容模式不依赖任何其他模块
+---
+- feat(web): :fire: New mode switching, updated web data display optimization
 - feat(mount): :fire: Supports two mounting modes, built-in mounting, compatible mounting
-- feat(mount): :sparkles: Use the built-in mount by default
+- feat(mount): :sparkles: Use the compatible mount by default
 ---
 - refactor(web): :recycle: Add GitHub Actions CI workflow and build system
 - Add .github/workflows/main.yaml for automated builds
