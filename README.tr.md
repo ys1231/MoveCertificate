@@ -60,7 +60,7 @@ mv cacert.der 02e06844.0
 
 ## Yıldız Geçmişi
 
-[![Star History Chart](https://api.star-history.com/svg?repos=ys1231/MoveCertificate&type=Date)](https://star-history.com/#ys1231/MoveCertificate&Date)
+[![Star History Chart](https://star-history.dera.page/svg?repos=ys1231/MoveCertificate&type=Date)](https://star-history.dera.page/#ys1231/MoveCertificate&Date)
 
 # Referanslar:
 - http://www.zhuoyue360.com/crack/60.html
