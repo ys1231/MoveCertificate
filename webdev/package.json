@@ -3,9 +3,9 @@
   "version": "1.0.0",
   "scripts": {
     "start": "node build.mjs --serve",
-    "build": "rm -rf ../webroot && mkdir -p ../webroot && node build.mjs",
+    "build": "node build.mjs",
     "typecheck": "tsc --noEmit",
-    "build_push": "rm -rf ../webroot && mkdir -p ../webroot && node build.mjs && scp ../webroot/*  root@192.168.1.10:/data/adb/modules/MoveCertificate/webroot/ && echo '✅ 构建并推送完成'",
+    "build_push": "node build.mjs && scp ../webroot/*  root@192.168.1.10:/data/adb/modules/MoveCertificate/webroot/ && echo '✅ 构建并推送完成'",
     "push": "scp ../webroot/*  root@192.168.1.10:/data/adb/modules/MoveCertificate/webroot/",
     "test": "echo \"Error: no test specified\" && exit 1"
   },

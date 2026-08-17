@@ -27,8 +27,8 @@ export function renderVersionInfo(containerId: string, lines: string[]): void {
     const el = document.getElementById(containerId);
     if (!el) return;
 
-    // 用 <br> 把每行文字拼起来，实现换行显示
-    el.innerHTML = lines.join('<br>');
+    // 用 textContent 渲染，避免 HTML 拼接；容器样式已设置 white-space: pre-wrap，换行可正常显示
+    el.textContent = lines.join('\n');
 }
 
 /**
@@ -39,8 +39,8 @@ export function renderLogInfo(containerId: string, lines: string[]): void {
     const el = document.getElementById(containerId);
     if (!el) return;
 
-    // 用 <br> 把每行拼起来，实现换行显示
-    el.innerHTML = lines.join('<br>');
+    // 用 textContent 渲染，避免 HTML 拼接；容器样式已设置 white-space: pre-wrap，换行可正常显示
+    el.textContent = lines.join('\n');
 }
 
 // ==================== 证书列表 ====================
@@ -132,7 +132,7 @@ export function hideSkeleton(containerId: string): void {
  */
 export function renderModeConfig(
     containerId: string,
-    currentMode: RunMode,
+    mode: RunMode,
     onSwitch: SwitchModeHandler,
 ): void {
     const el = document.getElementById(containerId);
@@ -150,11 +150,11 @@ export function renderModeConfig(
         <div class="groupbox">
             <span class="groupbox-title">${t('currentMode')}</span>
             <div class="mode-status">
-                <span class="mode-badge ${currentMode}">${modeNames[currentMode]}</span>
+                <span class="mode-badge ${mode}">${modeNames[mode]}</span>
                 <span class="mode-desc">${t('modeDesc')}</span>
             </div>
             <button class="mode-switch-btn" id="switchModeBtn">
-                ${t('switchTo')}${currentMode === 'compatible' ? t('builtinMode') : t('compatibleMode')}
+                ${t('switchTo')}${mode === 'compatible' ? t('builtinMode') : t('compatibleMode')}
             </button>
             <p class="mode-hint">${t('modeHint')}</p>
         </div>
@@ -188,7 +188,7 @@ export function renderModeConfig(
     if (switchBtn) {
         switchBtn.onclick = () => {
             // 计算切换后的新模式
-            const newMode: RunMode = currentMode === 'compatible' ? 'builtin' : 'compatible';
+            const newMode: RunMode = mode === 'compatible' ? 'builtin' : 'compatible';
             onSwitch(newMode);
         };
     }

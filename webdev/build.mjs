@@ -34,6 +34,10 @@ const OUT_DIR = path.join(__dirname, '..', 'webroot');
 async function build() {
     console.log('🔨 开始构建...\n');
 
+    // 清空输出目录，避免上次构建的残留产物（hash 文件名不同会不断累积）
+    fs.rmSync(OUT_DIR, { recursive: true, force: true });
+    fs.mkdirSync(OUT_DIR, { recursive: true });
+
     // 第一步：esbuild 打包 JS
     const jsHash = await buildJS();
     // 第二步：esbuild 打包 CSS
@@ -65,7 +69,7 @@ async function buildJS() {
     // 从输出文件名中提取 hash
     const jsFileName = path.basename(tempResult.outputFiles[0].path);
     const jsHash = jsFileName.replace('main.', '').replace('.js', '');
-    const jsOutPath = tempResult.outputFiles[0].path;
+    // const jsOutPath = tempResult.outputFiles[0].path;
 
     let jsCode = tempResult.outputFiles[0].text;
 
@@ -93,25 +97,24 @@ async function buildJS() {
 // ==================== CSS 打包 ====================
 
 async function buildCSS() {
+    // 与 buildJS 保持一致：write: false 从内存拿结果，避免扫描目录时误读残留文件
     const result = await esbuild.build({
         entryPoints: [CSS_ENTRY],
         bundle: true,
         minify: !isDev,
         sourcemap: isDev,
-        write: true,
+        write: false,
         outdir: OUT_DIR,
         entryNames: 'main.[hash]',
         loader: { '.css': 'css' },
     });
 
-    // 从输出的 metafile 或直接读文件获取 hash
-    // esbuild write 模式下文件名包含 hash，我们需要找到它
-    const files = fs.readdirSync(OUT_DIR);
-    const cssFile = files.find(f => f.startsWith('main.') && f.endsWith('.css') && !f.endsWith('.css.map'));
-    if (!cssFile) throw new Error('构建产物中未找到 CSS 文件');
-    const cssHash = cssFile.replace('main.', '').replace('.css', '');
+    // 从内存结果中提取 hash 文件名并写入磁盘
+    const cssFileName = path.basename(result.outputFiles[0].path);
+    const cssHash = cssFileName.replace('main.', '').replace('.css', '');
 
-    console.log(`   🎨 CSS → main.${cssHash}.css`);
+    fs.writeFileSync(path.join(OUT_DIR, cssFileName), result.outputFiles[0].text);
+    console.log(`   🎨 CSS → ${cssFileName}`);
 
     return cssHash;
 }
@@ -137,6 +140,11 @@ function copyHTML(jsHash, cssHash) {
             /<script\s+[^>]*\btype="module"[^>]*\bsrc="[^"]*\.[jt]s"[^>]*>|<script\s+[^>]*\bsrc="[^"]*\.[jt]s"[^>]*\btype="module"[^>]*>/,
             `<script src="${jsName}" type="module">`
         );
+
+    // 校验：正则替换失败时会静默保留原文，产物里不应再出现源码文件引用
+    if (updated.includes('src/main.ts') || updated.includes('styles/main.css')) {
+        throw new Error('index.html 资源引用替换失败，请检查源文件格式是否变化');
+    }
 
     fs.writeFileSync(path.join(OUT_DIR, 'index.html'), updated);
     console.log(`   📄 HTML → index.html`);

@@ -78,7 +78,11 @@ MODULE_SYSTEM_CERT_DIR=$MODDIR/system/etc/security/cacerts
 
 ## Module Apex conscrypt directory
 MODULE_APEX_CONSCRYPT_DIR=$MODDIR/apex/com.android.conscrypt/cacerts
-
+# 模块内带版本号的 conscrypt 挂载目录（对应系统 /apex/com.android.conscrypt@版本号）
+# basename 去掉 find 返回的 /apex 前缀，head -n1 防止多版本目录导致换行；
+# find 为空时路径落在 $MODDIR/apex/cacerts（目录不存在，后续操作自然失败，不会误伤模块根目录）
+APEX_CONSCRYPT_NUM_NAME=$(basename "$(find /apex -type d -name 'com.android.conscrypt@*' 2>/dev/null | head -n1)")
+MODULE_APEX_CONSCRYPT_NUM_DIR=$MODDIR/apex/$APEX_CONSCRYPT_NUM_NAME/cacerts
 ## Temporary directory
 # FULL_PATH=$(mktemp -d)
 # RANDOM_NAME=$(basename "$FULL_PATH")

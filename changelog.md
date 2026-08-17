@@ -1,3 +1,11 @@
+- feat(mount): :fire: 支持模块内带版本号 apex 挂载目录
+- fix(mount): :bug: 修复模式切换后证书文件残留问题
+- refactor(web): :recycle: 重构 Web 界面代码架构与数据刷新逻辑
+---
+- feat(mount): :fire: Support versioned apex mount directory inside module
+- fix(mount): :bug: Fix certificate leftovers after mode switching
+- refactor(web): :recycle: Refactor web UI code architecture and data refresh logic
+---
 - feat(mount): :sparkles: 默认使用兼容的挂载方式
 - feat(web): :fire: 新增模式切换, 更新优化 web 数据展示
 - feat(mount): :fire: 支持两种挂载模式，内置模式借助 meta 完成，兼容模式不依赖任何其他模块

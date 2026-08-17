@@ -15,12 +15,12 @@ export const CERT_HIGH_SYSTEM = '/apex/com.android.conscrypt/cacerts/';
 export const CERT_USER_SYSTEM = '/data/misc/user/0/cacerts-added/';
 /** 自定义证书目录（用户可以把证书文件放到这里，模块会自动导入） */
 export const CERT_CUSTOM = '/data/local/tmp/cert/';
-/** 模块自身的证书备份目录 */
-export const CERT_MODULE = '/data/adb/modules/MoveCertificate/certificates';
+/** 模块自身的证书备份目录（注意尾部斜杠：拼接文件名时直接使用） */
+export const CERT_MODULE = '/data/adb/modules/MoveCertificate/certificates/';
 /** 模块内置挂载点：低版本系统证书目录（Magisk Magic Mount 用） */
-export const CERT_MODULE_SYSTEM = '/data/adb/modules/MoveCertificate/system/etc/security/cacerts';
+export const CERT_MODULE_SYSTEM = '/data/adb/modules/MoveCertificate/system/etc/security/cacerts/';
 /** 模块内置挂载点：高版本系统证书目录（Magisk Magic Mount 用） */
-export const CERT_MODULE_APEX = '/data/adb/modules/MoveCertificate/apex/com.android.conscrypt/cacerts';
+export const CERT_MODULE_APEX = '/data/adb/modules/MoveCertificate/apex/com.android.conscrypt/cacerts/';
 
 // ==================== 模块文件路径 ====================
 

@@ -2,15 +2,22 @@
  * MoveCertificate — 主入口文件
  * 负责整个页面的初始化、Tab 切换、事件协调，以及语言切换
  * 
- * 页面有三个 Tab（底部标签栏）：
+ * 页面有四个 Tab（底部标签栏）：
  *   1. 证书管理 — 显示模块信息和证书列表（默认显示）
  *   2. 模式配置 — 查看和切换运行模式
- *   3. 运行日志 — 查看模块运行日志（点击时才加载，省资源）
+ *   3. 运行日志 — 查看模块运行日志
+ *   4. 设置 — 语言与主题（纯静态页面）
+ * 
+ * 数据加载策略（避免不必要的重复请求）：
+ *   - 版本信息：静态数据，只加载一次
+ *   - 证书列表：切换 Tab 不重复加载；点击"刷新证书列表"按钮才重新拉取
+ *   - 模式配置：切换 Tab 不重复读取，只在首次进入时从文件读取
+ *   - 运行日志：切换 Tab 不重复加载；点击"刷新日志"按钮才重新拉取
  */
 
 import { fullScreen, toast } from 'kernelsu';
-import { t, getLang, setLang, refreshLang } from './i18n.js';
-import type { LangCode } from './i18n.js';
+import { t, getLang, setLang, LANG_LABELS } from './i18n.js';
+import type { LangCode, I18nKey } from './i18n.js';
 import {
     getVersionInfo,
     getLoggerInfo,
@@ -27,26 +34,43 @@ import {
     showSkeleton,
     hideSkeleton,
 } from './ui-renderer.js';
-import type { SwitchModeHandler } from './ui-renderer.js';
+import type { SwitchModeHandler, DeleteHandler } from './ui-renderer.js';
 import { createModal } from './modal.js';
+import type { ModalController } from './modal.js';
+import { initTheme, bindThemeButtons } from './theme.js';
+import type { RunMode } from './constants.js';
 
 // ==================== Tab 名称类型 ====================
 
 type TabName = 'certs' | 'mode' | 'log' | 'settings';
 
+// ==================== 页面状态 ====================
+
+/** 证书列表是否已加载过（切换 Tab 不重复加载，点刷新按钮才强制更新） */
+let certsLoaded = false;
+/** 版本信息是否已加载过（静态数据，只加载一次） */
+let versionLoaded = false;
+/** 模式配置是否已加载过（切换 Tab 不重复读取） */
+let modeLoaded = false;
+/** 日志是否已加载过（懒加载标志位） */
+let logLoaded = false;
+/** 当前生效的运行模式（与 mode.conf 保持一致） */
+let currentMode: RunMode = 'compatible';
+/** 删除确认弹窗（页面初始化时创建一次，不随列表刷新重复创建） */
+let deleteModal: ModalController | null = null;
+
 // ==================== i18n：翻译页面上的静态文字 ====================
 
 /**
  * 把页面上所有带 data-i18n 属性的元素的文字替换为当前语言的翻译
- * 
- * 原理：遍历所有 [data-i18n="key"] 元素，用 t(key) 的值替换其 textContent
  * 这包括标题、标签栏按钮、模态框文字、分组框标题等
  */
 function applyI18n(): void {
     document.querySelectorAll('[data-i18n]').forEach(el => {
         const key = el.getAttribute('data-i18n');
         if (key) {
-            el.textContent = t(key);
+            // data-i18n 的值来自 HTML 模板，类型上做一次断言
+            el.textContent = t(key as I18nKey);
         }
     });
 
@@ -63,70 +87,22 @@ function applyI18n(): void {
 
 // ==================== 语言切换 ====================
 
-/** 语言代码对应的显示名称 */
-const LANG_LABELS: Record<LangCode, string> = {
-    'zh-CN': '中文',
-    en: 'English',
-    tr: 'Türkçe',
-};
-
 /**
  * 切换语言
- * 保存选择到 localStorage，刷新翻译，重新渲染当前页面
+ * setLang 内部会同步翻译状态，这里只需刷新页面上的静态文字
  */
 function switchLanguage(code: LangCode): void {
     setLang(code);
-    refreshLang(); // 更新 i18n 模块内部的 currentLang
-    applyI18n();   // 刷新页面上的静态文字
+    applyI18n();
 
-    // 重新渲染模式配置页（因为它的内容是通过 JS 动态生成的）
+    // 模式配置页的内容由 JS 动态生成，切换语言后需要重新渲染
     const modeTab = document.getElementById('tab-mode');
     if (modeTab && modeTab.classList.contains('active')) {
-        loadModeTab();
+        renderModeConfig('modeConfig', currentMode, switchModeHandler);
     }
 
-    // 更新按钮文字
+    // 更新按钮文字（这些按钮没有 data-i18n，需要手动更新）
     updateButtonTexts();
-}
-
-// ==================== 主题切换 ====================
-
-/** localStorage 存储键 */
-const THEME_STORAGE_KEY = 'movecert_theme';
-
-/** 支持的主题 */
-type Theme = 'dark' | 'light' | 'auto';
-
-/**
- * 获取当前主题设置
- */
-function getTheme(): Theme {
-    const saved = localStorage.getItem(THEME_STORAGE_KEY);
-    if (saved === 'dark' || saved === 'light' || saved === 'auto') {
-        return saved;
-    }
-    return 'auto';
-}
-
-/**
- * 应用主题到 <html> 的 data-theme 属性
- */
-function applyTheme(theme: Theme): void {
-    document.documentElement.setAttribute('data-theme', theme);
-    localStorage.setItem(THEME_STORAGE_KEY, theme);
-
-    // 更新设置页的主题按钮激活状态
-    document.querySelectorAll<HTMLElement>('.theme-btn').forEach(btn => {
-        btn.classList.toggle('active', btn.getAttribute('data-theme') === theme);
-    });
-}
-
-/**
- * 初始化主题（页面加载时调用）
- */
-function initTheme(): void {
-    const theme = getTheme();
-    applyTheme(theme);
 }
 
 /**
@@ -164,7 +140,7 @@ function switchTab(tabName: TabName): void {
     }
 
     // 3. 更新底部标签栏高亮 + 更新滑动指示器位置
-    document.querySelectorAll<HTMLElement>('.tab-item').forEach((item, index) => {
+    document.querySelectorAll<HTMLElement>('.tab-item').forEach((item) => {
         item.classList.toggle('active', item.getAttribute('data-tab') === tabName);
     });
 
@@ -185,114 +161,104 @@ function switchTab(tabName: TabName): void {
 
 // ==================== 各 Tab 的数据加载 ====================
 
-/** 日志是否已经加载过（懒加载标志位） */
-let logLoaded = false;
-/** 当前选中的模式 */
-let currentMode = 'compatible' as import('./constants.js').RunMode;
+/**
+ * 加载模块版本信息（静态数据，只加载一次）
+ */
+async function loadVersionInfo(): Promise<void> {
+    if (versionLoaded) {
+        return;
+    }
+
+    showSkeleton('versionInfo', 1);
+    try {
+        const lines = await getVersionInfo();
+        // 先移除骨架屏再渲染：hideSkeleton 会清空容器，顺序不能反
+        hideSkeleton('versionInfo');
+        renderVersionInfo('versionInfo', lines);
+        versionLoaded = true;
+    } catch (e) {
+        console.error('加载版本信息失败:', e);
+        hideSkeleton('versionInfo');
+        renderVersionInfo('versionInfo', [t('getVersionInfoFailed')]);
+    }
+}
 
 /**
- * 加载证书管理页的数据
- * 包括模块版本信息和证书列表
+ * 加载证书列表
+ * @param force 为 true 时强制重新拉取（刷新按钮使用）；
+ *              否则已有数据时直接跳过（切换 Tab 使用，不重复请求）
+ */
+async function loadCertList(force = false): Promise<void> {
+    if (!force && certsLoaded) {
+        return; // 已有数据，切换 Tab 时直接展示，不重复请求
+    }
+
+    showSkeleton('certificateList', 4);
+    try {
+        const certs = await getInstallCertResults();
+        certsLoaded = true;
+        // 先移除骨架屏再渲染：hideSkeleton 会清空容器，顺序不能反
+        hideSkeleton('certificateList');
+        if (certs.length === 0) {
+            toast(t('noCertFound'));
+        }
+        renderCertList('certificateList', certs, handleDelete);
+    } catch (e) {
+        console.error('加载证书列表失败:', e);
+        // 失败时重置标记：删除后刷新失败会导致列表与实际状态不一致，切换 Tab 时自动重试
+        certsLoaded = false;
+        hideSkeleton('certificateList');
+        // 保留页面已有内容，不破坏已显示的数据
+        toast(t('getCertListFailed'));
+    }
+}
+
+/**
+ * 加载证书管理页的数据（版本信息 + 证书列表）
+ * 两者互不依赖，并行加载
  */
 async function loadCertsTab(): Promise<void> {
-    showSkeleton('versionInfo', 1);
-    showSkeleton('certificateList', 4);
-
-    try {
-        // 并行请求版本信息和证书列表，加快加载速度
-        const [versionResult, certResult] = await Promise.allSettled([
-            getVersionInfo(),
-            getInstallCertResults(),
-        ]);
-
-        // 渲染版本信息
-        hideSkeleton('versionInfo');
-        if (versionResult.status === 'fulfilled') {
-            renderVersionInfo('versionInfo', versionResult.value);
-        } else {
-            renderVersionInfo('versionInfo', [t('getVersionInfoFailed')]);
-        }
-
-        // 渲染证书列表
-        hideSkeleton('certificateList');
-        if (certResult.status === 'fulfilled' && certResult.value.length > 0) {
-            // 创建删除确认模态框
-            const modal = createModal('deleteModal');
-
-            // 用户确认删除后的操作
-            modal.onConfirm(async (fileName: string) => {
-                try {
-                    await deleteCert(fileName);
-                    toast(t('deletedReboot', fileName));
-                    // 删除后重新加载证书列表
-                    const updatedCerts = await getInstallCertResults();
-                    renderCertList('certificateList', updatedCerts, handleDelete);
-                } catch (e) {
-                    console.error('删除证书失败:', e);
-                    toast(t('deleteFailed'));
-                }
-            });
-
-            // 点击删除按钮时弹出确认框
-            function handleDelete(fileName: string, liElement: HTMLLIElement): void {
-                modal.show(fileName);
-            }
-
-            renderCertList('certificateList', certResult.value, handleDelete);
-        }
-    } catch (e) {
-        console.error('加载证书管理页失败:', e);
-        hideSkeleton('versionInfo');
-        hideSkeleton('certificateList');
-        toast(t('loadFailedRoot'));
-    }
+    await Promise.all([loadVersionInfo(), loadCertList()]);
 }
 
 /**
  * 加载模式配置页的数据
+ * 只在首次进入时从文件读取，切换 Tab 不重复读取
  */
 async function loadModeTab(): Promise<void> {
+    if (modeLoaded) {
+        return;
+    }
+
     showSkeleton('modeConfig', 2);
-
-    // 切换模式的处理函数（声明提前，避免 TDZ 问题）
-    const switchModeHandler: SwitchModeHandler = (newMode) => {
-        setMode(newMode).then(() => {
-            currentMode = newMode;
-            const modeLabel = t(newMode === 'compatible' ? 'compatibleMode' : 'builtinMode');
-            toast(t('modeSwitched', modeLabel));
-            renderModeConfig('modeConfig', currentMode, switchModeHandler);
-        }).catch(() => {
-            toast(t('modeSwitchFailed'));
-        });
-    };
-
     try {
         currentMode = await getCurrentMode();
-        hideSkeleton('modeConfig');
-
-        // 渲染模式配置页面，传入切换回调
-        renderModeConfig('modeConfig', currentMode, switchModeHandler);
+        modeLoaded = true;
     } catch (e) {
         console.error('加载模式配置失败:', e);
-        hideSkeleton('modeConfig');
         toast(t('loadFailedRoot'));
+    } finally {
+        hideSkeleton('modeConfig');
+        // 无论读取成功与否都渲染页面（失败时展示默认的兼容模式）
+        renderModeConfig('modeConfig', currentMode, switchModeHandler);
     }
 }
 
 /**
- * 加载运行日志页的数据（懒加载）
- * 只有用户第一次切换到日志 Tab 时才真正读取日志文件
+ * 加载运行日志页的数据
+ * 只在首次进入时读取，切换 Tab 不重复加载
  */
 async function loadLogTab(): Promise<void> {
-    // 如果已经加载过，直接返回
-    if (logLoaded) return;
+    if (logLoaded) {
+        return;
+    }
 
     showSkeleton('logContent', 5);
-
     try {
         const logs = await getLoggerInfo();
+        // 先移除骨架屏再渲染：hideSkeleton 会清空容器，顺序不能反
         hideSkeleton('logContent');
-        renderLogInfo('logContent', logs);
+        renderLogInfo('logContent', logs.length > 0 ? logs : [t('noLog')]);
         logLoaded = true;
     } catch (e) {
         console.error('加载日志失败:', e);
@@ -302,20 +268,65 @@ async function loadLogTab(): Promise<void> {
 }
 
 /**
- * 刷新运行日志
+ * 刷新运行日志（点击"刷新日志"按钮时调用）
  */
 async function refreshLogTab(): Promise<void> {
     showSkeleton('logContent', 5);
     try {
         const logs = await getLoggerInfo();
+        // 先移除骨架屏再渲染：hideSkeleton 会清空容器，顺序不能反
         hideSkeleton('logContent');
-        renderLogInfo('logContent', logs);
+        renderLogInfo('logContent', logs.length > 0 ? logs : [t('noLog')]);
+        logLoaded = true; // 刷新成功后视为已加载，切换 Tab 不再自动重试
     } catch (e) {
         console.error('刷新日志失败:', e);
         hideSkeleton('logContent');
         renderLogInfo('logContent', [t('getLogFailed')]);
     }
 }
+
+// ==================== 模式切换 ====================
+
+/**
+ * 切换运行模式
+ * 成功后在本地更新状态并重新渲染；失败只提示，不改变页面状态
+ */
+const switchModeHandler: SwitchModeHandler = (newMode) => {
+    setMode(newMode).then(() => {
+        currentMode = newMode;
+        toast(t('modeSwitched', t(newMode === 'compatible' ? 'compatibleMode' : 'builtinMode')));
+        renderModeConfig('modeConfig', currentMode, switchModeHandler);
+    }).catch((e) => {
+        console.error('切换模式失败:', e);
+        toast(t('modeSwitchFailed'));
+    });
+};
+
+// ==================== 删除证书 ====================
+
+/**
+ * 点击证书列表中的删除按钮：弹出确认框
+ */
+const handleDelete: DeleteHandler = (fileName) => {
+    deleteModal?.show(fileName);
+};
+
+/**
+ * 用户在确认框中点击"确认"后执行删除
+ * 删除成功后强制重新拉取证书列表（这是用户显式操作后的必要更新）
+ */
+async function confirmDeleteCert(fileName: string): Promise<void> {
+    try {
+        await deleteCert(fileName);
+        toast(t('deletedReboot', fileName));
+        await loadCertList(true);
+    } catch (e) {
+        console.error('删除证书失败:', e);
+        toast(t('deleteFailed'));
+    }
+}
+
+// ==================== 自定义语言下拉组件 ====================
 
 /**
  * 初始化自定义语言下拉组件
@@ -325,12 +336,14 @@ function initLangDropdown(): void {
     const btn = document.getElementById('langSelectBtn');
     if (!wrap || !btn) return;
 
+    // 保存非空引用：闭包内的变量 TS 无法保持类型窄化，用别名避免到处判空
+    const wrapBox = wrap;
+
     const groupbox = wrap.closest<HTMLElement>('.groupbox');
 
     // 关闭下拉（同时移除 groupbox 层级提升）
     function closeDropdown(): void {
-        if (!wrap) return;
-        wrap.classList.remove('open');
+        wrapBox.classList.remove('open');
         if (groupbox) {
             groupbox.classList.remove('dropdown-open');
         }
@@ -339,7 +352,7 @@ function initLangDropdown(): void {
     // 点击按钮：打开/关闭下拉
     btn.addEventListener('click', (e: Event) => {
         e.stopPropagation();
-        const isOpen = wrap.classList.toggle('open');
+        const isOpen = wrapBox.classList.toggle('open');
         if (groupbox) {
             groupbox.classList.toggle('dropdown-open', isOpen);
         }
@@ -363,6 +376,8 @@ function initLangDropdown(): void {
     });
 }
 
+// ==================== 页面初始化 ====================
+
 /**
  * 页面加载完成后自动执行
  * 这是整个应用的入口点
@@ -378,19 +393,14 @@ window.onload = async (): Promise<void> => {
 
     // 初始化主题
     initTheme();
+    bindThemeButtons();
 
     // 初始化自定义语言下拉组件
     initLangDropdown();
 
-    // 绑定主题切换按钮事件
-    document.querySelectorAll<HTMLElement>('.theme-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const theme = btn.getAttribute('data-theme') as Theme;
-            if (theme) {
-                applyTheme(theme);
-            }
-        });
-    });
+    // 删除确认弹窗只创建一次，确认回调固定指向"删除并刷新列表"
+    deleteModal = createModal('deleteModal');
+    deleteModal.onConfirm(confirmDeleteCert);
 
     // ==================== 绑定底部标签栏点击事件 ====================
     document.querySelectorAll<HTMLElement>('.tab-item').forEach(tab => {
@@ -399,6 +409,7 @@ window.onload = async (): Promise<void> => {
             switchTab(tabName);
 
             // 根据切换到的 Tab 加载对应数据
+            // 各加载函数内部有"已加载则跳过"的判断，切换 Tab 不会重复请求
             switch (tabName) {
                 case 'certs':
                     loadCertsTab();
@@ -407,7 +418,7 @@ window.onload = async (): Promise<void> => {
                     loadModeTab();
                     break;
                 case 'log':
-                    loadLogTab(); // 懒加载
+                    loadLogTab();
                     break;
                 case 'settings':
                     // 设置页是纯静态的，不需要加载数据
@@ -417,9 +428,10 @@ window.onload = async (): Promise<void> => {
     });
 
     // ==================== 绑定刷新按钮 ====================
+    // 只有用户主动点击刷新按钮时才重新拉取数据
     const refreshCertsBtn = document.getElementById('refreshCertsBtn');
     if (refreshCertsBtn) {
-        refreshCertsBtn.addEventListener('click', loadCertsTab);
+        refreshCertsBtn.addEventListener('click', () => loadCertList(true));
     }
 
     const refreshLogBtn = document.getElementById('refreshLogBtn');

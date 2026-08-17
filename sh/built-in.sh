@@ -29,8 +29,14 @@ init_high_builtin_method() {
     compatible
     cp -f $MODULE_CERT_DIR/* $MODULE_APEX_CONSCRYPT_DIR
     print_log "Install $MODULE_APEX_CONSCRYPT_DIR status:$?"
+    rm -rf $MODULE_APEX_CONSCRYPT_NUM_DIR/*
+    cp -f $MODULE_CERT_DIR/* $MODULE_APEX_CONSCRYPT_NUM_DIR
+    print_log "Install $MODULE_APEX_CONSCRYPT_NUM_DIR status:$?"
     fix_system_permissions14 $MODULE_APEX_CONSCRYPT_DIR
     print_log "Fix $MODULE_APEX_CONSCRYPT_DIR permissions status:$?" 
+    fix_system_permissions14 $MODULE_APEX_CONSCRYPT_NUM_DIR
+    print_log "Fix $MODULE_APEX_CONSCRYPT_NUM_DIR permissions status:$?" 
     set_selinux_context $APEX_CONSCRYPT_DIR $MODULE_APEX_CONSCRYPT_DIR
+    set_selinux_context $APEX_CONSCRYPT_DIR $MODULE_APEX_CONSCRYPT_NUM_DIR
     
 }

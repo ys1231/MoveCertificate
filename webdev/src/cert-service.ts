@@ -3,15 +3,18 @@
  * 这个文件负责所有"获取数据"和"操作数据"的工作
  * 比如读证书列表、删证书、查日志、读写模式配置等
  * 
- * 注意：这个文件不操作页面 DOM，只处理数据
+ * 约定：
+ *   1. 这个文件不操作页面 DOM，也不显示任何提示（toast），只处理数据
+ *   2. 操作失败时抛出异常（带中文错误信息），由调用方决定如何提示用户
+ *   3. "没有数据"与"操作失败"是两回事：前者返回空结果，后者抛异常
  */
 
-import { exec, toast } from 'kernelsu';
-import { t } from './i18n.js';
+import { exec } from 'kernelsu';
 import {
     CERT_HIGH_SYSTEM,
     CERT_LOW_SYSTEM,
     CERT_USER_SYSTEM,
+    CERT_MODULE,
     ALL_CERT_PATHS,
     MODULE_PROP_PATH,
     INSTALL_LOG_PATH,
@@ -30,55 +33,47 @@ interface ExecResult {
     stderr: string;
 }
 
-/** API 查询响应 */
+/** 远程证书识别 API 的响应 */
 interface CertQueryResponse {
     result?: string;
     error?: string;
 }
 
-// ==================== 文件操作 ====================
+// ==================== 基础文件操作 ====================
 
 /**
  * 列出指定目录下的所有文件名
- * 相当于在终端执行 ls /some/path 命令
+ * 相当于在终端执行 ls /some/path
+ * 
+ * @throws 命令执行失败（目录不存在、权限不足等）时抛出异常
  */
 export async function getFileList(path: string): Promise<string[]> {
-    try {
-        // 调用 Android shell 执行 ls 命令
-        const { errno, stdout } = await exec(`ls '${path}'`) as ExecResult;
-        if (errno === 0) {
-            // 把输出按换行拆分，过滤掉空行
-            return String(stdout).trim().split('\n').filter(Boolean);
-        }
-        return [];
-    } catch (e) {
-        console.error('列出文件失败:', e);
-        return [];
+    const { errno, stdout } = await exec(`ls '${path}'`) as ExecResult;
+    if (errno !== 0) {
+        throw new Error(`列出目录失败: ${path}`);
     }
+    // 按换行拆分输出，过滤掉空行
+    return String(stdout).trim().split('\n').filter(Boolean);
 }
 
 /**
  * 读取文件内容并转为 base64 编码
  * 证书文件是二进制格式，用 base64 方便传输和比较
+ * 
+ * @throws 命令执行失败时抛出异常
  */
 export async function readFileBase64(path: string): Promise<string> {
-    try {
-        const { errno, stdout } = await exec(`cat '${path}' | base64`) as ExecResult;
-        if (errno === 0) {
-            return String(stdout).trim();
-        }
-        return '';
-    } catch (e) {
-        console.error('读取文件失败:', e);
-        return '';
+    const { errno, stdout } = await exec(`cat '${path}' | base64`) as ExecResult;
+    if (errno !== 0) {
+        throw new Error(`读取文件失败: ${path}`);
     }
+    return String(stdout).trim();
 }
 
 // ==================== 证书识别 ====================
 
 /**
- * 向远程服务器查询证书名称
- * 当本地字典匹配不到时，把证书内容发给服务器识别
+ * 向远程服务器查询证书名称（尽力而为，失败返回 null，不中断主流程）
  * 设置 5 秒超时，避免网络不好时卡太久
  */
 async function requestCertName(base64Data: string): Promise<string | null> {
@@ -127,86 +122,94 @@ function containsSubstring(str: string, substring: string): boolean {
 
 /**
  * 识别证书名称
- * 采用三级查找策略，按优先级依次尝试：
- * 
- * 第一级：根据证书文件名中的 hash 值查本地字典（最快）
- * 第二级：读取证书文件的 base64 内容，用内容匹配本地字典
- * 第三级：把 base64 内容发给远程 API 查询
+ * 采用两级查找策略，按优先级依次尝试：
+ *   第一级：根据证书文件名中的 hash 值查本地字典（最快）
+ *   第二级：读取证书内容，交给远程 API 查询
+ * 识别失败返回 'Unknown'，不影响证书列表展示
  */
 export async function getCertName(path: string): Promise<string> {
-    try {
-        // 第一级：用文件名 hash 匹配
-        for (const [key, value] of Object.entries(CERT_NAME_DICT)) {
-            if (containsSubstring(path, key)) {
-                return value;
-            }
+    // 第一级：用文件名 hash 匹配本地字典
+    for (const [key, value] of Object.entries(CERT_NAME_DICT)) {
+        if (containsSubstring(path, key)) {
+            return value;
         }
+    }
 
-        // 第二级：读取证书文件的 base64 内容，发给远程 API 查询
+    try {
+        // 第二级：读取证书内容，交给远程 API 查询
         const certText = await readFileBase64(path);
-
-        // 第三级：远程 API 查询
         const result = await requestCertName(certText);
-        if (result !== null && result !== '' && result !== undefined) {
+        if (result) {
             return result;
         }
-
-        return 'Unknown';
     } catch (err) {
         console.error('识别证书名称失败:', err);
-        return 'Unknown';
     }
+
+    return 'Unknown';
 }
 
 // ==================== 证书管理 ====================
 
 /**
  * 删除指定证书文件
- * 因为证书可能被复制到了多个目录，所以要同时从所有位置删除
- * 所有删除命令并行执行，节省时间
+ * 因为证书可能被复制到了多个目录，所以需要同时从所有位置删除
+ * 
+ * 安全与可靠性：
+ *   1. 删除前校验文件名格式（只允许 "hash.序号"），防止 shell 命令注入
+ *   2. 删除后校验核心目录中文件是否真的消失，未消失则抛出异常
+ * 
+ * @throws 文件名不合法或删除未生效时抛出异常
  */
 export async function deleteCert(file: string): Promise<void> {
+    // 证书文件名必须是 "hash.序号" 格式（如 02e06844.0），其他格式一律拒绝
+    if (!/^[0-9a-fA-F]{8}\.[0-9]+$/.test(file)) {
+        throw new Error(`非法的证书文件名: ${file}`);
+    }
+
+    // 并行删除所有位置的文件（个别目录不存在不影响整体流程）
     const rmCommands = ALL_CERT_PATHS.map(p =>
         exec(`rm -f '${p}${file}'`).catch(() => {})
     );
-
-    // 并行执行，不等待逐个完成
     await Promise.allSettled(rmCommands);
+
+    // 删除后校验：用户证书目录和模块备份目录是核心存储，不应再存在该文件
+    const [userFiles, moduleFiles] = await Promise.all([
+        getFileList(CERT_USER_SYSTEM),
+        getFileList(CERT_MODULE),
+    ]);
+    if (userFiles.includes(file) || moduleFiles.includes(file)) {
+        throw new Error(`证书删除失败: ${file}`);
+    }
 }
 
 /**
  * 获取模块版本信息
  * 读取 module.prop 文件，里面记录了版本号、作者、描述等
+ * 
+ * @throws 读取失败时抛出异常
  */
 export async function getVersionInfo(): Promise<string[]> {
-    try {
-        const { errno, stdout } = await exec(`cat '${MODULE_PROP_PATH}'`) as ExecResult;
-        if (errno === 0) {
-            return String(stdout).trim().split('\n');
-        }
-        return [t('getVersionInfoFailed')];
-    } catch (e) {
-        console.error('获取版本信息失败:', e);
-        return [t('getVersionInfoFailed')];
+    const { errno, stdout } = await exec(`cat '${MODULE_PROP_PATH}'`) as ExecResult;
+    if (errno !== 0) {
+        throw new Error(`读取模块信息失败: ${MODULE_PROP_PATH}`);
     }
+    return String(stdout).trim().split('\n');
 }
 
 /**
  * 获取模块运行日志
  * 读取 install.log 文件，记录模块每次启动的执行情况
- * 注意：这个函数只在用户切换到「运行日志」tab 时才会被调用（懒加载）
+ * 文件不存在时（模块安装后、首次重启前）返回空数组，由调用方展示"暂无日志"
+ * 
+ * @throws 读取失败时抛出异常
  */
 export async function getLoggerInfo(): Promise<string[]> {
-    try {
-        const { errno, stdout } = await exec(`cat '${INSTALL_LOG_PATH}'`) as ExecResult;
-        if (errno === 0) {
-            return String(stdout).trim().split('\n');
-        }
-        return [t('noLog')];
-    } catch (e) {
-        console.error('获取日志失败:', e);
-        return [t('getLogFailed')];
+    const { errno, stdout } = await exec(`cat '${INSTALL_LOG_PATH}'`) as ExecResult;
+    if (errno !== 0) {
+        return []; // 日志文件不存在属于正常情况（首次安装未重启），当作"空"处理
     }
+    return String(stdout).trim().split('\n').filter(Boolean);
 }
 
 /**
@@ -215,46 +218,41 @@ export async function getLoggerInfo(): Promise<string[]> {
  * 
  * 流程：
  *   1. 获取 Android 系统版本（决定去哪个目录查系统证书）
- *   2. 列出用户证书目录下的所有文件
- *   3. 列出系统证书目录下的所有文件
- *   4. 逐个识别证书名称，并判断是否已成功安装到系统目录
+ *   2. 并行列出用户证书目录和系统证书目录
+ *   3. 并发识别每个用户证书的名称，并判断是否已成功安装到系统目录
+ * 
+ * @returns 证书条目数组；没有任何证书时返回空数组（读取失败会抛异常，两者区分开）
  */
 export async function getInstallCertResults(): Promise<CertEntry[]> {
-    try {
-        // 1. 获取当前 Android 系统版本号
-        const { errno, stdout } = await exec('getprop ro.build.version.release') as ExecResult;
-        const systemVersion = Number(stdout);
-        if (isNaN(systemVersion)) {
-            toast(t('getVersionFailed'));
-            return [];
-        }
-
-        // 2. 列出用户安装的证书（/data/misc/user/0/cacerts-added/）
-        const userCerts = await getFileList(CERT_USER_SYSTEM);
-
-        // 3. 列出系统证书目录
-        const systemCertPath = systemVersion >= 14 ? CERT_HIGH_SYSTEM : CERT_LOW_SYSTEM;
-        const systemCerts = await getFileList(systemCertPath);
-
-        if (!userCerts.length && !systemCerts.length) {
-            toast(t('noCertFound'));
-            return [];
-        }
-
-        // 4. 逐个识别证书名称并判断状态
-        const results: CertEntry[] = [];
-        for (const item of userCerts) {
-            const name = await getCertName(CERT_USER_SYSTEM + item);
-            const status = systemCerts.includes(item) ? 'success' : 'failed';
-            results.push({ status, name: `${item}: ${name}` });
-        }
-
-        return results;
-    } catch (e) {
-        console.error('获取证书列表失败:', e);
-        toast(t('getCertListFailed'));
-        return [];
+    // 1. 获取当前 Android 系统版本号（>=14 使用 APEX 证书目录）
+    const { errno, stdout } = await exec('getprop ro.build.version.release') as ExecResult;
+    if (errno !== 0) {
+        throw new Error('获取系统版本失败');
     }
+    const systemVersion = Number(stdout);
+    if (isNaN(systemVersion)) {
+        throw new Error('获取系统版本失败');
+    }
+
+    // 2. 并行列出用户证书和系统证书
+    const systemCertPath = systemVersion >= 14 ? CERT_HIGH_SYSTEM : CERT_LOW_SYSTEM;
+    const [userCerts, systemCerts] = await Promise.all([
+        getFileList(CERT_USER_SYSTEM),
+        getFileList(systemCertPath),
+    ]);
+
+    if (userCerts.length === 0 && systemCerts.length === 0) {
+        return []; // 没有任何证书，由调用方提示用户
+    }
+
+    // 3. 并发识别所有用户证书的名称并判断状态
+    return Promise.all<CertEntry>(userCerts.map(async (item) => {
+        const name = await getCertName(CERT_USER_SYSTEM + item);
+        return {
+            status: systemCerts.includes(item) ? 'success' : 'failed',
+            name: `${item}: ${name}`,
+        };
+    }));
 }
 
 // ==================== 模式配置 ====================
@@ -262,37 +260,26 @@ export async function getInstallCertResults(): Promise<CertEntry[]> {
 /**
  * 获取当前运行模式
  * 读取 mode.conf 文件，解析出 compatible（兼容模式）或 builtin（内置方法）
- * 如果文件不存在或内容无效，默认返回 compatible
+ * 文件不存在或内容无效时返回默认值 compatible（这是"默认配置"语义，不算错误）
  */
 export async function getCurrentMode(): Promise<RunMode> {
-    try {
-        const { errno, stdout } = await exec(`cat '${MODE_CONF_PATH}'`) as ExecResult;
-        if (errno !== 0) {
-            return 'compatible'; // 文件不存在，使用默认值
-        }
-
-        const content = String(stdout).trim().toLowerCase();
-        // 从 "mode=compatible" 或 "mode=builtin" 中提取值
-        if (content.includes('builtin')) {
-            return 'builtin';
-        }
-        return 'compatible'; // 其他情况都当作兼容模式
-    } catch (e) {
-        console.error('读取模式配置失败:', e);
+    const { errno, stdout } = await exec(`cat '${MODE_CONF_PATH}'`) as ExecResult;
+    if (errno !== 0) {
         return 'compatible';
     }
+
+    const content = String(stdout).trim().toLowerCase();
+    // 从 "mode=compatible" 或 "mode=builtin" 中提取值
+    return content.includes('builtin') ? 'builtin' : 'compatible';
 }
 
 /**
  * 切换运行模式
  * 把新的模式值写入 mode.conf 文件
  * 注意：修改后需要重启设备才能生效
+ * 
+ * @throws 写入失败时抛出异常
  */
 export async function setMode(mode: RunMode): Promise<void> {
-    try {
-        await exec(`echo "mode=${mode}" > '${MODE_CONF_PATH}'`);
-    } catch (e) {
-        console.error('写入模式配置失败:', e);
-        throw e;
-    }
+    await exec(`echo "mode=${mode}" > '${MODE_CONF_PATH}'`);
 }

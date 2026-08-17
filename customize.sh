@@ -42,6 +42,12 @@ on_install() {
   mkdir -p -m 755 "$D_CERTIFICATE"
   mkdir -p -m 755 /data/misc/user/0/cacerts-added
 
+  APEX_VER_NAME=$(basename "$(find /apex -type d -name 'com.android.conscrypt@*' 2>/dev/null | head -n1)")
+  if [ -n "$APEX_VER_NAME" ]; then
+    mkdir -p -m 755 "$MODPATH/apex/$APEX_VER_NAME/cacerts"
+    # ui_print "- Created versioned apex dir: $APEX_VER_NAME"
+  fi
+
   # Create default mode config
   MODE_CONF="$MODPATH/mode.conf"
   if [ ! -f "$MODE_CONF" ]; then

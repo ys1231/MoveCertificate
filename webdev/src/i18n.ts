@@ -331,6 +331,13 @@ export const supportedLangs: readonly LangItem[] = [
     { code: 'tr',    name: 'Türkçe', nativeName: 'Türkçe' },
 ] as const;
 
+/** 语言代码对应的显示名称（语言选择器按钮文字用），与 supportedLangs 保持一致 */
+export const LANG_LABELS: Record<LangCode, string> = {
+    'zh-CN': '中文',
+    en: 'English',
+    tr: 'Türkçe',
+};
+
 // ==================== 语言检测与存储 ====================
 
 /** localStorage 存储键 */
@@ -351,9 +358,13 @@ export function getLang(): LangCode {
     return 'en';
 }
 
-/** 设置语言并保存到 localStorage */
+/**
+ * 设置语言：保存到 localStorage 并同步内部状态
+ * 调用后 t() 立即返回新语言的翻译，调用方无需再做任何额外操作
+ */
 export function setLang(code: LangCode): void {
     localStorage.setItem(STORAGE_KEY, code);
+    currentLang = code;
 }
 
 // ==================== 翻译函数 ====================
@@ -372,8 +383,8 @@ let currentLang: LangCode = getLang();
  *   t('delete')                    → '删除'
  *   t('deletedReboot', 'abc.0')   → 'abc.0 已删除，重启生效！'
  */
-export function t(key: string, ...args: string[]): string {
-    const dict = translations[key as I18nKey];
+export function t(key: I18nKey, ...args: string[]): string {
+    const dict = translations[key];
     if (!dict) {
         console.warn(`i18n: 缺少翻译 key "${key}"`);
         return key;
@@ -389,9 +400,3 @@ export function t(key: string, ...args: string[]): string {
     return text;
 }
 
-/**
- * 刷新当前语言（在 setLang 后调用，重新读取）
- */
-export function refreshLang(): void {
-    currentLang = getLang();
-}
