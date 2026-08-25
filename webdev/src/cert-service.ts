@@ -236,18 +236,25 @@ export async function getInstallCertResults(): Promise<CertEntry[]> {
 
     // 2. 并行列出用户证书和系统证书
     const systemCertPath = systemVersion >= 14 ? CERT_HIGH_SYSTEM : CERT_LOW_SYSTEM;
-    const [userCerts, systemCerts] = await Promise.all([
-        getFileList(CERT_USER_SYSTEM),
-        getFileList(systemCertPath),
+    const [userCerts, moduleCerts, systemCerts] = await Promise.all([
+        getFileList(CERT_USER_SYSTEM).catch(() => []),
+        getFileList(CERT_MODULE).catch(() => []),
+        getFileList(systemCertPath).catch(() => []),
     ]);
 
-    if (userCerts.length === 0 && systemCerts.length === 0) {
-        return []; // 没有任何证书，由调用方提示用户
+    const certs = [...new Set([...userCerts, ...moduleCerts])];
+
+    if (certs.length === 0 && systemCerts.length === 0) {
+        return [];
     }
 
-    // 3. 并发识别所有用户证书的名称并判断状态
-    return Promise.all<CertEntry>(userCerts.map(async (item) => {
-        const name = await getCertName(CERT_USER_SYSTEM + item);
+    return Promise.all<CertEntry>(certs.map(async (item) => {
+        const sourcePath = moduleCerts.includes(item)
+            ? CERT_MODULE + item
+            : CERT_USER_SYSTEM + item;
+
+        const name = await getCertName(sourcePath);
+
         return {
             status: systemCerts.includes(item) ? 'success' : 'failed',
             name: `${item}: ${name}`,
