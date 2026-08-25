@@ -91,7 +91,6 @@ TEMP_DIR=/mnt/instaler
 move_custom_cert() {
     if [ "$(ls -A $CUSTOM_CERT_DIR)" ]; then
         cp -f $CUSTOM_CERT_DIR/* $MODULE_CERT_DIR
-        cp -f $CUSTOM_CERT_DIR/* $USER_CERT_DIR
     else
         print_log "The directory $CUSTOM_CERT_DIR is empty."
     fi

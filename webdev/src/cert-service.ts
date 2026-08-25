@@ -14,6 +14,7 @@ import {
     CERT_HIGH_SYSTEM,
     CERT_LOW_SYSTEM,
     CERT_USER_SYSTEM,
+    CERT_CUSTOM,
     CERT_MODULE,
     ALL_CERT_PATHS,
     MODULE_PROP_PATH,
@@ -236,21 +237,30 @@ export async function getInstallCertResults(): Promise<CertEntry[]> {
 
     // 2. 并行列出用户证书和系统证书
     const systemCertPath = systemVersion >= 14 ? CERT_HIGH_SYSTEM : CERT_LOW_SYSTEM;
-    const [userCerts, systemCerts] = await Promise.all([
-        getFileList(CERT_USER_SYSTEM),
+    const [userCerts, systemCerts, customCerts] = await Promise.all([
+        getFileList(CERT_USER_SYSTEM).catch(() => [] as string[]),
         getFileList(systemCertPath),
+        getFileList(CERT_CUSTOM).catch(() => [] as string[]),
     ]);
 
-    if (userCerts.length === 0 && systemCerts.length === 0) {
-        return []; // 没有任何证书，由调用方提示用户
+    const userCertSet = new Set(userCerts);
+    const systemCertSet = new Set(systemCerts);
+    const installedCustomCerts = customCerts.filter(c => systemCertSet.has(c) && !userCertSet.has(c));
+
+    const entries = [
+        ...userCerts.map(f => ({ file: f, path: CERT_USER_SYSTEM + f })),
+        ...installedCustomCerts.map(f => ({ file: f, path: CERT_CUSTOM + f })),
+    ];
+
+    if (entries.length === 0) {
+        return [];
     }
 
-    // 3. 并发识别所有用户证书的名称并判断状态
-    return Promise.all<CertEntry>(userCerts.map(async (item) => {
-        const name = await getCertName(CERT_USER_SYSTEM + item);
+    return Promise.all<CertEntry>(entries.map(async ({ file, path }) => {
+        const name = await getCertName(path);
         return {
-            status: systemCerts.includes(item) ? 'success' : 'failed',
-            name: `${item}: ${name}`,
+            status: systemCertSet.has(file) ? 'success' : 'failed',
+            name: `${file}: ${name}`,
         };
     }));
 }
