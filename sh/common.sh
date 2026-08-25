@@ -89,9 +89,9 @@ MODULE_APEX_CONSCRYPT_NUM_DIR=$MODDIR/apex/$APEX_CONSCRYPT_NUM_NAME/cacerts
 TEMP_DIR=/mnt/instaler
 
 move_custom_cert() {
-    if [ "$(ls -A $CUSTOM_CERT_DIR)" ]; then
+    if [ "$(ls -A $CUSTOM_CERT_DIR 2>/dev/null)" ]; then
+        print_log "Import custom certificates directly to $MODULE_CERT_DIR"
         cp -f $CUSTOM_CERT_DIR/* $MODULE_CERT_DIR
-        cp -f $CUSTOM_CERT_DIR/* $USER_CERT_DIR
     else
         print_log "The directory $CUSTOM_CERT_DIR is empty."
     fi
