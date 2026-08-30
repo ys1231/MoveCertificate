@@ -276,7 +276,7 @@ export async function getInstallCertResults(): Promise<CertEntry[]> {
         const targetPath = moduleCerts.includes(item) ? CERT_MODULE : CERT_USER_SYSTEM;
         const name = await getCertName(targetPath + item);
         return {
-            status: systemCerts.includes(item) ? 'success' : 'failed',
+            status: (userCerts.includes(item) && systemCerts.includes(item)) ? 'success' : 'failed',
             name: `${item}: ${name}`,
         };
     }));
