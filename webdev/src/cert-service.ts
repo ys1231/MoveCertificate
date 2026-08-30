@@ -22,6 +22,7 @@ import {
     CERT_NAME_DICT,
     CERT_QUERY_API,
     CERT_MODULE_APEX_NUM_GLOB,
+    SYSTEM_CERTS_LIST_PATH,
 } from './constants.js';
 import type { RunMode, CertEntry } from './constants.js';
 
@@ -228,7 +229,6 @@ export async function getLoggerInfo(): Promise<string[]> {
  * @returns 证书条目数组；没有任何证书时返回空数组（读取失败会抛异常，两者区分开）
  */
 export async function getInstallCertResults(): Promise<CertEntry[]> {
-    // 1. 获取当前 Android SDK 版本号（>=34 即 Android 14+，使用 APEX 证书目录，与 shell 脚本口径一致）
     const { errno, stdout } = await exec('getprop ro.build.version.sdk') as ExecResult;
     if (errno !== 0) {
         throw new Error('获取系统版本失败');
@@ -238,20 +238,52 @@ export async function getInstallCertResults(): Promise<CertEntry[]> {
         throw new Error('获取系统版本失败');
     }
 
-    // 2. 并行列出用户证书和系统证书
     const systemCertPath = sdkVersion >= 34 ? CERT_HIGH_SYSTEM : CERT_LOW_SYSTEM;
-    const [userCerts, systemCerts] = await Promise.all([
-        getFileList(CERT_USER_SYSTEM),
-        getFileList(systemCertPath),
+    const [userCerts, systemCerts, moduleCerts] = await Promise.all([
+        getFileList(CERT_USER_SYSTEM).catch(() => [] as string[]),
+        getFileList(systemCertPath).catch(() => [] as string[]),
+        getFileList(CERT_MODULE).catch(() => [] as string[]),
     ]);
 
-    if (userCerts.length === 0 && systemCerts.length === 0) {
-        return []; // 没有任何证书，由调用方提示用户
+    let baseSystemCerts: string[] = [];
+    try {
+        const { errno: errnoList, stdout: listOut } = await exec(`cat '${SYSTEM_CERTS_LIST_PATH}'`) as ExecResult;
+        if (errnoList === 0) {
+            baseSystemCerts = String(listOut).trim().split('\n').filter(Boolean);
+        }
+    } catch (e) {
     }
 
-    // 3. 并发识别所有用户证书的名称并判断状态
-    return Promise.all<CertEntry>(userCerts.map(async (item) => {
-        const name = await getCertName(CERT_USER_SYSTEM + item);
+    const userInstalledCerts = new Set<string>();
+
+    for (const c of userCerts) {
+        userInstalledCerts.add(c);
+    }
+
+    for (const c of moduleCerts) {
+        if (baseSystemCerts.length > 0) {
+            if (!baseSystemCerts.includes(c)) {
+                userInstalledCerts.add(c);
+            }
+        } else {
+            for (const key of Object.keys(CERT_NAME_DICT)) {
+                if (c.toLowerCase().includes(key.toLowerCase())) {
+                    userInstalledCerts.add(c);
+                    break;
+                }
+            }
+        }
+    }
+
+    const allUserCerts = Array.from(userInstalledCerts);
+
+    if (allUserCerts.length === 0 && systemCerts.length === 0) {
+        return [];
+    }
+
+    return Promise.all<CertEntry>(allUserCerts.map(async (item) => {
+        const targetPath = moduleCerts.includes(item) ? CERT_MODULE : CERT_USER_SYSTEM;
+        const name = await getCertName(targetPath + item);
         return {
             status: systemCerts.includes(item) ? 'success' : 'failed',
             name: `${item}: ${name}`,
