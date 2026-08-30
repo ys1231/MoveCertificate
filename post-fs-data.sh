@@ -27,6 +27,13 @@ if [ "$CURRENT_MODE" != "builtin" ]; then
     print_log "cleaned builtin mode leftovers"
 fi
 
+print_log "Record original system certificates"
+ls -1 /system/etc/security/cacerts > $MODDIR/system_certs.txt 2>/dev/null
+if [ -d "/apex/com.android.conscrypt/cacerts" ]; then
+    ls -1 /apex/com.android.conscrypt/cacerts >> $MODDIR/system_certs.txt 2>/dev/null
+fi
+sort -u $MODDIR/system_certs.txt -o $MODDIR/system_certs.txt
+
 # Android version <= 13 execute
 if [ "$sdk_version_number" -le 33 ]; then
     if [ "$CURRENT_MODE" = "builtin" ]; then
