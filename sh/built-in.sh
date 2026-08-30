@@ -6,7 +6,7 @@ MODDIR=${0%/*}
 init_low_builtin_method() {
 
     print_log "Use built-in method"
-    # mkdir -p $MODULE_SYSTEM_CERT_DIR
+    rm -rf $MODULE_CERT_DIR/*
     print_log "Backup $USER_CERT_DIR to $MODULE_CERT_DIR"
     cp -u $USER_CERT_DIR/* $MODULE_CERT_DIR
     move_custom_cert
@@ -22,7 +22,7 @@ init_low_builtin_method() {
 init_high_builtin_method() {
     
     print_log "Use built-in method"
-    # mkdir -p $MODULE_SYSTEM_CERT_DIR
+    rm -rf $MODULE_CERT_DIR/*
     print_log "Backup $USER_CERT_DIR to $MODULE_CERT_DIR"
     cp -u $USER_CERT_DIR/* $MODULE_CERT_DIR
     move_custom_cert

@@ -7,6 +7,8 @@ Eğer telefonunuz resmi bir imaja sahipse, bu modüle ihtiyacınız olabilir. Ke
 
 # Kullanım
 
+- Sistem ayarları üzerinden kurulumu tercih edin, kodlama sorunlarıyla uğraşmanıza gerek yok
+
 1. Sertifikayı dışa aktardıktan sonra, doğrudan telefonunuza `push` yapın ve sistem ayarları üzerinden normal şekilde yükleyin, ardından yeniden başlatın. Format dönüşümüne gerek yoktur.
 2. [appproxy](https://github.com/ys1231/appproxy) VPN proxy aracı ile kullanılabilir.
 
@@ -14,29 +16,28 @@ Eğer telefonunuz resmi bir imaja sahipse, bu modüle ihtiyacınız olabilir. Ke
 
 - **Bu yöntem mevcut sertifikaların üzerine yazar, birden fazla bilgisayar ve yerleşik sertifikalar için tasarlanmıştır**
 - Normalde bu senaryoya ihtiyaç yoktur.
+- Reqable'ın doğrudan dışa aktardığı HASH.0 her zaman çalışmayabilir. crt dışa aktarmanız ve sistem ayarları üzerinden normal şekilde kurmanız veya aşağıdaki komutları kullanarak dönüştürmeniz önerilir. Aksi takdirde, sertifika dosyası başarıyla taşınsa bile, kodlama sorunları nedeniyle sistem onu tanımayacaktır.
 
 0. Eğer sertifika daha önce taşınmışsa veya kaynak koduna yerleştirilmişse, sistem üzerinden doğrudan kurulumun aslında sertifikayı kurmadığını göreceksiniz. Bu senaryo korunmalıdır.
 
 1. Paket yakalama yazılımı sertifikasını dışa aktarın ve pem formatına dönüştürün
-2. Sertifika hash'ini alın
+2. der sertifikasını alın
 
 ```shell
 # pem sertifikaları için (Android sistemi der kullanır, bu yüzden taşınan sertifikanın der'ye dönüştürülmesi gerekir)
-## 1. Hash hesapla
-### OpenSSL 1.0 üstü versiyonlar için
+## 1. Hash hesapla (ikisinden biri)
 openssl x509 -inform PEM -subject_hash_old -in cacert.pem
-### OpenSSL 1.0 altı versiyonlar için
 openssl x509 -inform PEM -subject_hash -in cacert.pem
 ## 2. der'ye dönüştür
 openssl x509 -in cacert.pem -outform der -out cacert.der
+### Veya crt'den
+openssl x509 -in cacert.crt -outform der -out cacert.der
 mv cacert.der 02e06844.0
 
 # der sertifikaları için
-## 1. Önce hash hesaplamak için pem'e dönüştür
-openssl x509 -in cacert.der -inform der -outform pem -out cacert.pem
-openssl x509 -inform PEM -subject_hash_old -in cacert.pem
-## 1.1 Doğrudan der hesaplayın
+## 1. der hash'ini hesapla (ikisinden biri)
 openssl x509 -in cacert.der -inform der -subject_hash_old -noout
+openssl x509 -in cacert.der -inform der -subject_hash -noout
 ## 2. Sertifikayı hash.0 olarak yeniden adlandır
 mv cacert.der 02e06844.0
 # Veya telefon kurulumundan sonra doğrudan kullanıcı dizininden sertifikayı çıkarabilirsiniz, hesaplama ve format dönüşümü endişesine gerek yok.
@@ -44,9 +45,9 @@ mv cacert.der 02e06844.0
 
 ![20221109212126575](README.assets/20221109212126575.png)
 
-4. Sertifika dosyasını (dönüştürmeden önce) manuel olarak `02e06844.0` olarak yeniden adlandırın veya `02e06844.1` olarak birlikte var olun
-5. `adb push 02e06844.0  /data/local/tmp/cert/`
-6. Sertifikayı telefona gönderdikten sonra, etkili olması için yeniden başlatın.
+3. der formatındaki `02e06844.0` sertifikasını alın veya `02e06844.1` olarak birlikte var olun
+4. `adb push 02e06844.0  /data/local/tmp/cert/`
+5. Yeniden başlatmanız yeterli.
 
 ## MoveCertificate web
 
@@ -54,6 +55,10 @@ mv cacert.der 02e06844.0
 - Modül tarafından kurulan sertifikaların ayrıntılı bilgilerini de görüntüleyebilir.
 - Sertifikaları silmek için uzun basın.
 
+# Derleme Komutu
+```shell
+./buildzip.sh all
+```
 
 # Test Sonuçları
 ![2024-02-19_01.27.27](README.assets/2024-02-19_01.27.27.png)

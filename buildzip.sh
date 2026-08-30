@@ -43,15 +43,14 @@ zip -r "$ZIP_FILE" \
     META-INF \
     webroot \
     sh \
-    customize.sh \
+    *.sh \
     LICENSE \
     *.md \
     module.prop \
-    post-fs-data.sh \
-    service.sh \
     system.prop \
     update.json \
-    README.assets
+    README.assets \
+    -x "buildzip.sh"
 
 echo "打包完成: ${ZIP_FILE}"
 

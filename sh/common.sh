@@ -83,6 +83,10 @@ MODULE_APEX_CONSCRYPT_DIR=$MODDIR/apex/com.android.conscrypt/cacerts
 # find 为空时路径落在 $MODDIR/apex/cacerts（目录不存在，后续操作自然失败，不会误伤模块根目录）
 APEX_CONSCRYPT_NUM_NAME=$(basename "$(find /apex -type d -name 'com.android.conscrypt@*' 2>/dev/null | head -n1)")
 MODULE_APEX_CONSCRYPT_NUM_DIR=$MODDIR/apex/$APEX_CONSCRYPT_NUM_NAME/cacerts
+
+## Old Module Apex conscrypt directory
+APEX_CONSCRYPT_OLD_NUM_NAME=$(basename "$(find $MODDIR/apex -type d -name 'com.android.conscrypt@*' 2>/dev/null | head -n1)")
+
 ## Temporary directory
 # FULL_PATH=$(mktemp -d)
 # RANDOM_NAME=$(basename "$FULL_PATH")
@@ -90,6 +94,16 @@ TEMP_DIR=/mnt/instaler
 
 move_custom_cert() {
     if [ "$(ls -A $CUSTOM_CERT_DIR)" ]; then
+
+        for cert_file in "$CUSTOM_CERT_DIR"/*; do
+            [ -f "$cert_file" ] || continue
+            byte=$(head -c1 "$cert_file" | od -An -tx1 | tr -d ' \n')
+            if [ "$byte" != "30" ]; then
+                print_log "$(basename "$cert_file") is not a der certificate, needs encoding conversion, deleting it"
+                rm -f "$cert_file"
+            fi
+        done
+
         cp -f $CUSTOM_CERT_DIR/* $MODULE_CERT_DIR
         cp -f $CUSTOM_CERT_DIR/* $USER_CERT_DIR
     else
@@ -163,4 +177,14 @@ compatible(){
         fi
     done
     print_log "Compatibility cleanup status:$?"
+
+    # Support OTG big version update
+    # 仅当模块内确实存在旧版本目录时才清理；OLD 为空时 rm -rf 会误删整个 $MODDIR/apex
+    if [ -n "$APEX_CONSCRYPT_OLD_NUM_NAME" ] && [ "$APEX_CONSCRYPT_OLD_NUM_NAME" != "$APEX_CONSCRYPT_NUM_NAME" ]; then
+        print_log "OTG big version update detected, cleaning up old conscrypt directory."
+        rm -rf "$MODDIR/apex/$APEX_CONSCRYPT_OLD_NUM_NAME"
+        print_log "Removed old conscrypt directory: $MODDIR/apex/$APEX_CONSCRYPT_OLD_NUM_NAME"
+        mkdir -p -m 755 "$MODULE_APEX_CONSCRYPT_NUM_DIR"
+        print_log "Created new conscrypt directory: $MODULE_APEX_CONSCRYPT_NUM_DIR"
+    fi
 }

@@ -21,6 +21,8 @@ export const CERT_MODULE = '/data/adb/modules/MoveCertificate/certificates/';
 export const CERT_MODULE_SYSTEM = '/data/adb/modules/MoveCertificate/system/etc/security/cacerts/';
 /** 模块内置挂载点：高版本系统证书目录（Magisk Magic Mount 用） */
 export const CERT_MODULE_APEX = '/data/adb/modules/MoveCertificate/apex/com.android.conscrypt/cacerts/';
+/** 模块内置挂载点：带版本号的 apex 证书目录（版本号动态，删除时用 glob 展开） */
+export const CERT_MODULE_APEX_NUM_GLOB = '/data/adb/modules/MoveCertificate/apex/com.android.conscrypt@*/cacerts/';
 
 // ==================== 模块文件路径 ====================
 

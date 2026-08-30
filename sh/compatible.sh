@@ -48,7 +48,7 @@ init_high_version(){
     compatible
     
     print_log "find system conscrypt directory"
-    apex_dir=$(find /apex -type d -name "com.android.conscrypt@*")
+    apex_dir=$(find /apex -type d -name "com.android.conscrypt@*" 2>/dev/null | head -n1)
     print_log "find conscrypt directory: $apex_dir"
 
     mount -t tmpfs tmpfs $TEMP_DIR
@@ -67,7 +67,7 @@ init_high_version(){
             nsenter --mount=/proc/${pid}/ns/mnt -- mount --bind $TEMP_DIR $APEX_CONSCRYPT_DIR
             nsenter --mount=/proc/${pid}/ns/mnt -- mount --bind $TEMP_DIR $apex_dir/cacerts
     done
-    umount $TEMP_DIR
-    rmdir $TEMP_DIR
-    print_log "umount $TEMP_DIR status:$?"
+    # umount $TEMP_DIR
+    # rmdir $TEMP_DIR
+    # print_log "umount $TEMP_DIR status:$?"
 }

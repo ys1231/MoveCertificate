@@ -21,6 +21,7 @@ import {
     MODE_CONF_PATH,
     CERT_NAME_DICT,
     CERT_QUERY_API,
+    CERT_MODULE_APEX_NUM_GLOB,
 } from './constants.js';
 import type { RunMode, CertEntry } from './constants.js';
 
@@ -171,6 +172,9 @@ export async function deleteCert(file: string): Promise<void> {
     const rmCommands = ALL_CERT_PATHS.map(p =>
         exec(`rm -f '${p}${file}'`).catch(() => {})
     );
+    // 带版本号的 apex 目录路径含动态版本号，不能用单引号固定路径，改用 glob 展开清理
+    // file 已经过上面的格式校验，不含 shell 特殊字符，可直接拼接
+    rmCommands.push(exec(`rm -f ${CERT_MODULE_APEX_NUM_GLOB}${file}`).catch(() => {}));
     await Promise.allSettled(rmCommands);
 
     // 删除后校验：用户证书目录和模块备份目录是核心存储，不应再存在该文件
@@ -224,18 +228,18 @@ export async function getLoggerInfo(): Promise<string[]> {
  * @returns 证书条目数组；没有任何证书时返回空数组（读取失败会抛异常，两者区分开）
  */
 export async function getInstallCertResults(): Promise<CertEntry[]> {
-    // 1. 获取当前 Android 系统版本号（>=14 使用 APEX 证书目录）
-    const { errno, stdout } = await exec('getprop ro.build.version.release') as ExecResult;
+    // 1. 获取当前 Android SDK 版本号（>=34 即 Android 14+，使用 APEX 证书目录，与 shell 脚本口径一致）
+    const { errno, stdout } = await exec('getprop ro.build.version.sdk') as ExecResult;
     if (errno !== 0) {
         throw new Error('获取系统版本失败');
     }
-    const systemVersion = Number(stdout);
-    if (isNaN(systemVersion)) {
+    const sdkVersion = Number(stdout);
+    if (isNaN(sdkVersion)) {
         throw new Error('获取系统版本失败');
     }
 
     // 2. 并行列出用户证书和系统证书
-    const systemCertPath = systemVersion >= 14 ? CERT_HIGH_SYSTEM : CERT_LOW_SYSTEM;
+    const systemCertPath = sdkVersion >= 34 ? CERT_HIGH_SYSTEM : CERT_LOW_SYSTEM;
     const [userCerts, systemCerts] = await Promise.all([
         getFileList(CERT_USER_SYSTEM),
         getFileList(systemCertPath),
