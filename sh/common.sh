@@ -84,9 +84,6 @@ MODULE_APEX_CONSCRYPT_DIR=$MODDIR/apex/com.android.conscrypt/cacerts
 APEX_CONSCRYPT_NUM_NAME=$(basename "$(find /apex -type d -name 'com.android.conscrypt@*' 2>/dev/null | head -n1)")
 MODULE_APEX_CONSCRYPT_NUM_DIR=$MODDIR/apex/$APEX_CONSCRYPT_NUM_NAME/cacerts
 
-## Old Module Apex conscrypt directory
-APEX_CONSCRYPT_OLD_NUM_NAME=$(basename "$(find $MODDIR/apex -type d -name 'com.android.conscrypt@*' 2>/dev/null | head -n1)")
-
 ## Temporary directory
 # FULL_PATH=$(mktemp -d)
 # RANDOM_NAME=$(basename "$FULL_PATH")
@@ -179,12 +176,15 @@ compatible(){
     print_log "Compatibility cleanup status:$?"
 
     # Support OTG big version update
-    # 仅当模块内确实存在旧版本目录时才清理；OLD 为空时 rm -rf 会误删整个 $MODDIR/apex
-    if [ -n "$APEX_CONSCRYPT_OLD_NUM_NAME" ] && [ "$APEX_CONSCRYPT_OLD_NUM_NAME" != "$APEX_CONSCRYPT_NUM_NAME" ]; then
-        print_log "OTG big version update detected, cleaning up old conscrypt directory."
-        rm -rf "$MODDIR/apex/$APEX_CONSCRYPT_OLD_NUM_NAME"
-        print_log "Removed old conscrypt directory: $MODDIR/apex/$APEX_CONSCRYPT_OLD_NUM_NAME"
-        mkdir -p -m 755 "$MODULE_APEX_CONSCRYPT_NUM_DIR"
-        print_log "Created new conscrypt directory: $MODULE_APEX_CONSCRYPT_NUM_DIR"
-    fi
+    # 遍历模块内所有带版本号的 conscrypt 目录，删除与当前系统版本不一致的旧目录，
+    # 避免 find 顺序不确定导致取错目录、以及存在多个旧版本目录时只清理第一个
+    for apex_dir in $MODDIR/apex/com.android.conscrypt@*; do
+        [ -d "$apex_dir" ] || continue
+        apex_num_name=$(basename "$apex_dir")
+        if [ "$apex_num_name" != "$APEX_CONSCRYPT_NUM_NAME" ]; then
+            rm -rf "$MODDIR/apex/$apex_num_name"
+            print_log "Removed old conscrypt directory: $MODDIR/apex/$apex_num_name"
+        fi
+    done
+    mkdir -p -m 755 "$MODULE_APEX_CONSCRYPT_NUM_DIR"
 }
