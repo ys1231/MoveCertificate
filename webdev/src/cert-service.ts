@@ -261,17 +261,8 @@ export async function getInstallCertResults(): Promise<CertEntry[]> {
     }
 
     for (const c of moduleCerts) {
-        if (baseSystemCerts.length > 0) {
-            if (!baseSystemCerts.includes(c)) {
-                userInstalledCerts.add(c);
-            }
-        } else {
-            for (const key of Object.keys(CERT_NAME_DICT)) {
-                if (c.toLowerCase().includes(key.toLowerCase())) {
-                    userInstalledCerts.add(c);
-                    break;
-                }
-            }
+        if (baseSystemCerts.length > 0 && !baseSystemCerts.includes(c)) {
+            userInstalledCerts.add(c);
         }
     }
 
