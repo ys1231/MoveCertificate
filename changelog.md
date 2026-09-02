@@ -1,11 +1,17 @@
+- feat(cert): :sparkles: 新增证书名称本地缓存，优先读取本地缓存再查询远程 API
+- docs(readme): :memo: 更新证书哈希计算步骤
+---
+- feat(cert): :sparkles: Add local cache for recognized certificate names, check local cache before querying remote API
+- docs(readme): :memo: Clarify certificate hash calculation steps
+---
 - fix(mount): :bug: #74 修复builtin模式下, OTA 版本更新, 残留 com.android.conscrypt旧版目录, 触发挂载空目录导致开机启动异常
-- fix(mount): :bug: 存在多个 conscrypt 版本目录时统一取首个，避免 bind 挂载失败
+- fix(mount): :bug: 存在多个 conscrypt 版本目录时删除旧版，避免 bind 挂载失败
 - fix(web): :bug: 删除证书时通过 glob 清理带版本号的 apex 目录
 - refactor(web): :recycle: 版本判断改用 sdk，与 shell 脚本口径保持一致
 - feat(sh): :sparkles: 优化手动安装证书，筛除非 der 格式证书
 ---
 - fix(mount): :bug: #74 Fix builtin mode: OTA version update leaves stale com.android.conscrypt directory, mounting empty directory causes boot failure
-- fix(mount): :bug: Take the first conscrypt dir when multiple versions exist to avoid bind mount failure
+- fix(mount): :bug: Delete the old version when there are multiple conscrypt version directories to avoid the failure of bind mount.
 - fix(web): :bug: Clean up the versioned apex dir via glob when deleting certs
 - refactor(web): :recycle: Use sdk for version detection to match the shell scripts
 - feat(sh): :sparkles: Optimize manual certificate installation, filter out non-der certificates
