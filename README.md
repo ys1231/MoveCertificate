@@ -25,19 +25,17 @@
 
 ```shell
 # pem 证书 Android 系统使用 der 所以移动后的证书格式需要转成 der
-## 1. 计算 hash 二选一
+## 1. 计算 pem
 openssl x509 -inform PEM -subject_hash_old -in cacert.pem
-openssl x509 -inform PEM -subject_hash -in cacert.pem
-## 2. 转der
+## 2. 转 der
 openssl x509 -in cacert.pem -outform der -out cacert.der
-### 或者 crt
+### 2.1 或者 crt
 openssl x509 -in cacert.crt -outform der -out cacert.der
 mv cacert.der 02e06844.0
 
 # der 证书 
-## 1. 计算 der HASH 二选一
+## 1. 计算 der 
 openssl x509 -in cacert.der -inform der -subject_hash_old -noout
-openssl x509 -in cacert.der -inform der -subject_hash -noout
 ## 2. 重命名证书为 hash值.0
 mv cacert.der 02e06844.0
 # 或者直接使用手机安装后,提取用户目录的证书出来,就不需要考虑计算和格式转换问题.

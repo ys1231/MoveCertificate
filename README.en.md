@@ -25,9 +25,8 @@ If your phone has an official image, you might need this module. If you compile 
 
 ```shell
 # For pem certificates (Android system uses der, so the moved certificate needs to be converted to der)
-## 1. Calculate hash (either one)
+## 1. Calculate pem
 openssl x509 -inform PEM -subject_hash_old -in cacert.pem
-openssl x509 -inform PEM -subject_hash -in cacert.pem
 ## 2. Convert to der
 openssl x509 -in cacert.pem -outform der -out cacert.der
 ### Or from crt
@@ -35,9 +34,8 @@ openssl x509 -in cacert.crt -outform der -out cacert.der
 mv cacert.der 02e06844.0
 
 # For der certificates
-## 1. Calculate der hash (either one)
+## 1. Calculate der 
 openssl x509 -in cacert.der -inform der -subject_hash_old -noout
-openssl x509 -in cacert.der -inform der -subject_hash -noout
 ## 2. Rename certificate to hash.0
 mv cacert.der 02e06844.0
 # Or directly extract the certificate from the user directory after installing it on the phone, no need to worry about calculation and format conversion.
