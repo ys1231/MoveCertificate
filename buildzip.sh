@@ -49,6 +49,7 @@ zip -r "$ZIP_FILE" \
     module.prop \
     system.prop \
     update.json \
+    cert_names.json \
     README.assets \
     -x "buildzip.sh"
 

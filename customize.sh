@@ -54,6 +54,14 @@ on_install() {
     echo "mode=compatible" > "$MODE_CONF"
     ui_print "- Created default mode.conf (compatible mode)"
   fi
+
+  # Preserve learned certificate names across upgrades
+  # (the packaged cert_names.json only carries the built-in seed names)
+  OLD_CERT_NAMES="/data/adb/modules/MoveCertificate/cert_names.json"
+  if [ -f "$OLD_CERT_NAMES" ]; then
+    cp "$OLD_CERT_NAMES" "$MODPATH/cert_names.json"
+    ui_print "- Preserved existing cert_names.json"
+  fi
 }
 
 # You can add more functions to assist your custom script code

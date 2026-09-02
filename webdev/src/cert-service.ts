@@ -19,7 +19,7 @@ import {
     MODULE_PROP_PATH,
     INSTALL_LOG_PATH,
     MODE_CONF_PATH,
-    CERT_NAME_DICT,
+    CERT_NAME_CACHE_PATH,
     CERT_QUERY_API,
     CERT_MODULE_APEX_NUM_GLOB,
     SYSTEM_CERTS_LIST_PATH,
@@ -115,25 +115,80 @@ async function requestCertName(base64Data: string): Promise<string | null> {
 }
 
 /**
- * 判断字符串是否包含另一个字符串（忽略大小写）
- * 比如 "MyCert" 和 "mycert" 会判定为匹配
+ * 从缓存文件读取已识别的证书名称映射（hash → 名称）
+ * 文件随模块打包内置了常见证书名称，运行时会追加远程 API 学到的名称
+ * 文件不存在或内容损坏时返回空对象（当作无缓存）
  */
-function containsSubstring(str: string, substring: string): boolean {
-    return str.toLowerCase().includes(substring.toLowerCase());
+async function readCertNameCache(): Promise<Record<string, string>> {
+    const { errno, stdout } = await exec(`cat '${CERT_NAME_CACHE_PATH}'`) as ExecResult;
+    if (errno !== 0) {
+        return {};
+    }
+    try {
+        const parsed = JSON.parse(String(stdout).trim()) as Record<string, string>;
+        return parsed && typeof parsed === 'object' ? parsed : {};
+    } catch {
+        return {};
+    }
+}
+
+/**
+ * 把证书名称映射写回缓存文件
+ * 先转 UTF-8 再 base64 后写入，避免名称里出现引号等 shell 特殊字符破坏命令
+ */
+async function writeCertNameCache(cache: Record<string, string>): Promise<void> {
+    const bytes = new TextEncoder().encode(JSON.stringify(cache));
+    let binary = '';
+    for (const b of bytes) {
+        binary += String.fromCharCode(b);
+    }
+    await exec(`echo '${btoa(binary)}' | base64 -d > '${CERT_NAME_CACHE_PATH}'`);
+}
+
+// 串行化缓存写入：多个并发查询同时写文件时，后写会覆盖先写，导致缓存丢失
+let cacheWriteChain: Promise<void> = Promise.resolve();
+
+/**
+ * 记录一条远程识别结果到缓存（合并写入，不覆盖已有条目）
+ * 写入失败只打印日志，不影响主流程
+ */
+function saveCertNameToCache(key: string, name: string): void {
+    cacheWriteChain = cacheWriteChain
+        .then(async () => {
+            const cache = await readCertNameCache();
+            cache[key] = name;
+            await writeCertNameCache(cache);
+        })
+        .catch((err) => {
+            console.error('写入证书名称缓存失败:', err);
+        });
+}
+
+/**
+ * 从证书文件路径中提取文件名 hash（如 "9a5ba575.0" → "9a5ba575"）
+ * 提取不到时返回 null（此时不缓存）
+ */
+function getCertHashKey(path: string): string | null {
+    const fileName = path.split('/').pop() ?? '';
+    return /^([0-9a-fA-F]{8})\./.exec(fileName)?.[1]?.toLowerCase() ?? null;
 }
 
 /**
  * 识别证书名称
  * 采用两级查找策略，按优先级依次尝试：
- *   第一级：根据证书文件名中的 hash 值查本地字典（最快）
- *   第二级：读取证书内容，交给远程 API 查询
+ *   第一级：查本地缓存（打包内置 + 上次远程查询已识别的名称）
+ *   第二级：读取证书内容，交给远程 API 查询，成功后写入缓存
  * 识别失败返回 'Unknown'，不影响证书列表展示
  */
 export async function getCertName(path: string): Promise<string> {
-    // 第一级：用文件名 hash 匹配本地字典
-    for (const [key, value] of Object.entries(CERT_NAME_DICT)) {
-        if (containsSubstring(path, key)) {
-            return value;
+    const hashKey = getCertHashKey(path);
+
+    // 第一级：查本地缓存
+    if (hashKey) {
+        const cache = await readCertNameCache();
+        const cached = cache[hashKey];
+        if (cached) {
+            return cached;
         }
     }
 
@@ -142,6 +197,9 @@ export async function getCertName(path: string): Promise<string> {
         const certText = await readFileBase64(path);
         const result = await requestCertName(certText);
         if (result) {
+            if (hashKey) {
+                saveCertNameToCache(hashKey, result);
+            }
             return result;
         }
     } catch (err) {
