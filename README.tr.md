@@ -25,9 +25,8 @@ Eğer telefonunuz resmi bir imaja sahipse, bu modüle ihtiyacınız olabilir. Ke
 
 ```shell
 # pem sertifikaları için (Android sistemi der kullanır, bu yüzden taşınan sertifikanın der'ye dönüştürülmesi gerekir)
-## 1. Hash hesapla (ikisinden biri)
+## 1. Hash hesapla
 openssl x509 -inform PEM -subject_hash_old -in cacert.pem
-openssl x509 -inform PEM -subject_hash -in cacert.pem
 ## 2. der'ye dönüştür
 openssl x509 -in cacert.pem -outform der -out cacert.der
 ### Veya crt'den
@@ -35,9 +34,8 @@ openssl x509 -in cacert.crt -outform der -out cacert.der
 mv cacert.der 02e06844.0
 
 # der sertifikaları için
-## 1. der hash'ini hesapla (ikisinden biri)
+## 1. der hash'ini hesapla
 openssl x509 -in cacert.der -inform der -subject_hash_old -noout
-openssl x509 -in cacert.der -inform der -subject_hash -noout
 ## 2. Sertifikayı hash.0 olarak yeniden adlandır
 mv cacert.der 02e06844.0
 # Veya telefon kurulumundan sonra doğrudan kullanıcı dizininden sertifikayı çıkarabilirsiniz, hesaplama ve format dönüşümü endişesine gerek yok.
